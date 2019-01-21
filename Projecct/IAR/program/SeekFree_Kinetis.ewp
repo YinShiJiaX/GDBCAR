@@ -1269,6 +1269,12 @@
             <name>$PROJ_DIR$\..\..\USER\src\main.c</name>
         </file>
         <file>
+            <name>$PROJ_DIR$\..\..\USER\src\pid.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\USER\src\sysinit.c</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\..\..\..\Libraries\version.txt</name>
         </file>
     </group>
@@ -1285,6 +1291,9 @@
         </file>
         <file>
             <name>$PROJ_DIR$\..\..\USER\inc\isr.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\USER\inc\sysinit.h</name>
         </file>
     </group>
 </project>

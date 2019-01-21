@@ -36,103 +36,76 @@ MT9V032接线定义：
 #include "test.c"
 
 
-
-
-
-
-
 uint8 dis_image[64][128];
 uint16 dat;
 uint8 image_threshold;  //图像阈值
-uint32 use_time;        
+        
 
 int main(void)
 {
-    uint8 num;
-    int i;
-    uint8 *p;
-
+    int32 Current_Point = 0;/* 当前中点值 ********/
+    int32 Steer_Duty    = 0;/* 当前需要给舵机的占空比 */
     /************************以下为测试例程*********************/
 //    test_led();
 //    test_uart();
 //    test_camera();
 //    test_motor();
 
-
-
-    /************************以上为测试例程*********************/
-
-    get_clk();//上电后必须运行一次这个函数，获取各个频率信息，便于后面各个模块的参数设置
-    //gpio_init(A19,GPO,0);	//初始化A19引脚为输出，默认输出低电平
-    //gpio_init(D15,GPO,1);	//初始化D15引脚为输出，默认输出低电平    蜂鸣器
-    //systick_delay_ms(300);
-    //gpio_set(D15,0);                   //关蜂鸣器 
+    /*************************初始化所有模块********************/
+    everythinginit();
     
-    
-    //uart_init (uart2, 115200);                          //初始换串口与电脑通信
-    //camera_init();
-    //OLED_Init();
-    //OLED_Fill(0x00);         //清屏
-
-    
-    //ftm_pwm_init(ftm3,ftm_ch4,15000,0);//初始化ftm3模块，4通道为15kHZ，占空比为百分之0，默认精度为10000 引脚对应查看MK60DN10_port_cfg.h
-    //ftm_pwm_init(ftm3,ftm_ch5,15000,0);
-    //ftm_pwm_init(ftm3,ftm_ch6,15000,0);
-    //ftm_pwm_init(ftm3,ftm_ch7,15000,0);
-    
-    
-    pit_init_ms(pit0,500);								//定时5ms后中断
-    set_irq_priority(PIT0_IRQn,3);						//设置优先级,根据自己的需求设置
-    enable_irq(PIT0_IRQn);								//打开pit0的中断开关
-    EnableInterrupts;									//打开总的中断开关
-
-
     while(1)
     {
+
         while(mt9v032_finish_flag)
         {
             mt9v032_finish_flag = 0;
             
-            pit_time_start(pit1);
-            image_threshold = OtsuThreshold(image[0],COL,ROW);  //大津法计算阈值    //60*80图像计算时间为907us
-            use_time = pit_time_get(pit1)/bus_clk_mhz;          //计算大津法程序消耗时间，单位微秒。
-
-            pit_close(pit1);
-//            printf("use_time = %dus\n",  use_time);
+            handlegray();/*处理图像并进行二值化*/
+            Image_Handle(image[0]);/*处理图像，取中线*/
+            Current_Point = Point_Average();/*加权平均*/
+            Steer_Duty = Position_PID(90, Current_Point);/**位置式pid解算***/
+            Steer_Duty = range_protect(Steer_Duty, 1400, 1700);
+            ftm_pwm_duty(STEER_FTM, STEER_CH, Steer_Duty);
+            OLED_Print_Num(0, 0, Current_Point);/*OLED输出当前中值*/
+            //printf("%d\n", Point_Average());
             
+            //uint32 use_time;
+            //pit_time_start(pit1);
+            //image_threshold = OtsuThreshold(image[0],COL,ROW);  //大津法计算阈值    //60*80图像计算时间为907us
+            //use_time = pit_time_get(pit1)/bus_clk_mhz;          //计算大津法程序消耗时间，单位微秒。
+            //pit_close(pit1);
+            //printf("use_time = %dus\n",  use_time);           
             
-//            //发送二值化图像至上位机
-//            p = image[0];
-//            uart_putchar(uart2,0x00);uart_putchar(uart2,0xff);uart_putchar(uart2,0x01);uart_putchar(uart2,0x01);//发送命令
-//            for(i=0; i<COL*ROW; i++)
-//            {
-//                if(p[i]>image_threshold)    uart_putchar(uart2,0xff);
-//                else                        uart_putchar(uart2,0x00);
-//            }
+            //发送二值化图像至上位机
+            /*
+            p = image[0];
+            uart_putchar(uart2,0x00);uart_putchar(uart2,0xff);uart_putchar(uart2,0x01);uart_putchar(uart2,0x01);//发送命令
+            for(i=0; i<COL*ROW; i++)
+            {
+                if(p[i]>image_threshold)    uart_putchar(uart2,0xff);
+                else                        uart_putchar(uart2,0x00);
+            }
+            */
 
-//            seekfree_sendimg_032();                             //发送灰度至上位机
-//            systick_delay_ms(400);
+            //seekfree_sendimg_032();                             //发送灰度至上位机
+            //systick_delay_ms(50);
 
 
             //dui 数据进行抽点然后在显示
-            for(num=0; num<ROW; num++)
+            /*
+            for(int num=0; num<ROW; num++)
             {
                 memcpy(dis_image[num],&image[num][0],COL);
             }
             dis_bmp(64,128,dis_image[0],image_threshold);
-            systick_delay_ms(400);
-            motor();
+            */
+            //dis_bmp(60,,image[0],image_threshold);
+            //systick_delay_ms(400);
+            
         }
-
+        
     }
-
-}
-
-
-void PIT0_IRQHandler(void)
-{
-    PIT_FlAG_CLR(pit0);
-    gpio_turn(A19);			//翻转电平状态
 
 }
 

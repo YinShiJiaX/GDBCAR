@@ -57,3 +57,20 @@ void motor()
   
 }
 
+/***********************ÏÞ·ù±£»¤*************************/
+int32 
+range_protect(int32 duty, int32 min, int32 max)
+{
+	if (duty >= max)
+	{
+		return max;
+	}
+	if (duty <= min)
+	{
+		return min;
+	}
+	else
+	{
+		return duty;
+	}
+}

@@ -1,46 +1,46 @@
-"D:\恩智浦智能车\逐飞K66\程序\Camera V1.1 图像大津法\Libraries\seekfree\SEEKFREE_MMA8451.c"
+"C:\Users\jiage\Desktop\GDBCAR\Libraries\seekfree\SEEKFREE_MMA8451.c"
 -std=c11
 -ferror-limit=0
 -I
-D:\恩智浦智能车\逐飞K66\程序\Camera V1.1 图像大津法\Projecct\IAR\program\..\..\USER\inc
+C:\Users\jiage\Desktop\GDBCAR\Projecct\IAR\program\..\..\USER\inc
 -I
-D:\恩智浦智能车\逐飞K66\程序\Camera V1.1 图像大津法\Projecct\IAR\program\..\..\USER\src
+C:\Users\jiage\Desktop\GDBCAR\Projecct\IAR\program\..\..\USER\src
 -I
-D:\恩智浦智能车\逐飞K66\程序\Camera V1.1 图像大津法\Projecct\IAR\program\..\..\..\Libraries\startup\CoreSupport
+C:\Users\jiage\Desktop\GDBCAR\Projecct\IAR\program\..\..\..\Libraries\startup\CoreSupport
 -I
-D:\恩智浦智能车\逐飞K66\程序\Camera V1.1 图像大津法\Projecct\IAR\program\..\..\..\Libraries\startup\DeviceSupport\IAR-ARM
+C:\Users\jiage\Desktop\GDBCAR\Projecct\IAR\program\..\..\..\Libraries\startup\DeviceSupport\IAR-ARM
 -I
-D:\恩智浦智能车\逐飞K66\程序\Camera V1.1 图像大津法\Projecct\IAR\program\..\..\..\Libraries\startup\DeviceSupport
+C:\Users\jiage\Desktop\GDBCAR\Projecct\IAR\program\..\..\..\Libraries\startup\DeviceSupport
 -I
-D:\恩智浦智能车\逐飞K66\程序\Camera V1.1 图像大津法\Projecct\IAR\program\..\..\..\Libraries\drives\inc
+C:\Users\jiage\Desktop\GDBCAR\Projecct\IAR\program\..\..\..\Libraries\drives\inc
 -I
-D:\恩智浦智能车\逐飞K66\程序\Camera V1.1 图像大津法\Projecct\IAR\program\..\..\..\Libraries\seekfree
+C:\Users\jiage\Desktop\GDBCAR\Projecct\IAR\program\..\..\..\Libraries\seekfree
 -I
-D:\恩智浦智能车\逐飞K66\程序\Camera V1.1 图像大津法\Projecct\IAR\program\..\..\..\Libraries\FatFs
+C:\Users\jiage\Desktop\GDBCAR\Projecct\IAR\program\..\..\..\Libraries\FatFs
 -I
-D:\恩智浦智能车\逐飞K66\程序\Camera V1.1 图像大津法\Projecct\IAR\program\..\..\..\Libraries\FatFs\option
+C:\Users\jiage\Desktop\GDBCAR\Projecct\IAR\program\..\..\..\Libraries\FatFs\option
 -I
-D:\Software Installation (Professional Software)\IAR安装\arm\inc
+C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.0\arm\inc
 -I
-D:\Software Installation (Professional Software)\IAR安装\arm\inc\c
+C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.0\arm\inc\c
 -I
-D:\恩智浦智能车\逐飞K66\程序\Camera V1.1 图像大津法\Projecct\USER\inc
+C:\Users\jiage\Desktop\GDBCAR\Projecct\USER\inc
 -I
-D:\恩智浦智能车\逐飞K66\程序\Camera V1.1 图像大津法\Projecct\USER\src
+C:\Users\jiage\Desktop\GDBCAR\Projecct\USER\src
 -I
-D:\恩智浦智能车\逐飞K66\程序\Camera V1.1 图像大津法\Libraries\startup\CoreSupport
+C:\Users\jiage\Desktop\GDBCAR\Libraries\startup\CoreSupport
 -I
-D:\恩智浦智能车\逐飞K66\程序\Camera V1.1 图像大津法\Libraries\startup\DeviceSupport\IAR-ARM
+C:\Users\jiage\Desktop\GDBCAR\Libraries\startup\DeviceSupport\IAR-ARM
 -I
-D:\恩智浦智能车\逐飞K66\程序\Camera V1.1 图像大津法\Libraries\startup\DeviceSupport
+C:\Users\jiage\Desktop\GDBCAR\Libraries\startup\DeviceSupport
 -I
-D:\恩智浦智能车\逐飞K66\程序\Camera V1.1 图像大津法\Libraries\drives\inc
+C:\Users\jiage\Desktop\GDBCAR\Libraries\drives\inc
 -I
-D:\恩智浦智能车\逐飞K66\程序\Camera V1.1 图像大津法\Libraries\seekfree
+C:\Users\jiage\Desktop\GDBCAR\Libraries\seekfree
 -I
-D:\恩智浦智能车\逐飞K66\程序\Camera V1.1 图像大津法\Libraries\FatFs
+C:\Users\jiage\Desktop\GDBCAR\Libraries\FatFs
 -I
-D:\恩智浦智能车\逐飞K66\程序\Camera V1.1 图像大津法\Libraries\FatFs\option
+C:\Users\jiage\Desktop\GDBCAR\Libraries\FatFs\option
 -D__CHAR_BITS__=8
 -D__CHAR_MAX__=127
 -D__CHAR_MIN__=(-__CHAR_MAX__-1)
@@ -319,8 +319,8 @@ D:\恩智浦智能车\逐飞K66\程序\Camera V1.1 图像大津法\Libraries\Fat
 -D__EDG_FLOAT80_ENABLING_POSSIBLE=0
 -D__EDG_FLOAT128_ENABLING_POSSIBLE=0
 -D_DLIB_FILE_DESCRIPTOR=1
--D_DLIB_CONFIG_FILE_HEADER_NAME="D:\\Software Installation (Professional Software)\\IAR@@\\arm\\INC\\c\\DLib_Config_Normal.h"
--D_DLIB_CONFIG_FILE_STRING="D:\\Software Installation (Professional Software)\\IAR@@\\arm\\INC\\c\\DLib_Config_Normal.h"
+-D_DLIB_CONFIG_FILE_HEADER_NAME="C:\\Program Files (x86)\\IAR Systems\\Embedded Workbench 8.0\\arm\\INC\\c\\DLib_Config_Normal.h"
+-D_DLIB_CONFIG_FILE_STRING="C:\\Program Files (x86)\\IAR Systems\\Embedded Workbench 8.0\\arm\\INC\\c\\DLib_Config_Normal.h"
 -D__VERSION__="IAR ANSI C/C++ Compiler V8.20.1.14183/W32 for ARM"
 -D__ICCARM_OLD_DEFINED_VAARGS__=1
 -D__VA_STACK_ALIGN__=8

@@ -22,17 +22,17 @@
 #ifndef _headfile_h
 #define _headfile_h
 
-
-#include "MK60_port_cfg.h"
-#include "common.h"
-#include "misc.h"
+/*************C库函数*****************************************************/
 #include "stdio.h"
-
 #include "math.h"
 #include <string.h>
 
+/*************端口复用，数据类型声明，中断配置******************************/
+#include "MK60_port_cfg.h"
+#include "common.h"
+#include "misc.h"
 
-//--------函数库--------
+/************片级函数库****************************************************/
 #include "MK60_rtc.h"
 #include "MK60_gpio.h"
 #include "MK60_systick.h"
@@ -51,12 +51,13 @@
 #include "MK60_cmt.h"
 #include "MK60_sdhc.h"
 
+/***************中断服务函数***********************************************/
 #include "isr.h"
 
-//fatfs文件系统
+/**************fatfs文件系统***********************************************/
 #include "ff.h"
 
-//--------逐飞科技产品例程库--------
+/**************逐飞科技产品例程库*******************************************/
 #include "SEEKFREE_MT9V032.h"
 #include "SEEKFREE_18TFT.h"
 #include "SEEKFREE_FUN.h"
@@ -70,5 +71,10 @@
 #include "SEEKFREE_MPU6050.h"
 #include "SEEKFREE_28LCD.h"
 
+/*****************自己的模块***********************************************/
+#include "sysinit.h"
+#include "handle.h"
+#include "control.h"
+#include "pid.h"
 
-#endif
+#endif/*_headfile_h*/

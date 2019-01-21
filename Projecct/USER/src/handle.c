@@ -507,7 +507,7 @@ int32 Point_Average(void)
 		Last_Point = Point;	// 更新上次目标点
 	}
 	
-	return (Point-77);
+	return Point;
 }
 
 
@@ -1791,4 +1791,34 @@ uint8 OtsuThreshold( uint8 *image, uint16 col, uint16 row)
        }
      }
      return OtsuThresholdOut;
+}
+
+/*
+ * 大津法计算阈值并对图像进行二值化
+*/
+void handlegray(void)
+{
+	uint8 *p;
+	int image_threshold;
+	p = image[0];
+	image_threshold = OtsuThreshold(image[0],COL,ROW);
+    //uart_putchar(uart2,0x00);uart_putchar(uart2,0xff);uart_putchar(uart2,0x01);uart_putchar(uart2,0x01);//发送命令
+    for(int i = 0; i < ROW; i++)
+    {
+		for(int j = 0;j < COL;j++)
+		{
+			if(image[i][j] > image_threshold)  
+			{
+				//uart_putchar(uart2,0xff);
+				image[i][j] = 1;
+			}
+        	else
+			{
+				//uart_putchar(uart2,0x00);
+				image[i][j] = 0;
+			}
+		}
+    }
+
+
 }

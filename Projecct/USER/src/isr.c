@@ -22,13 +22,6 @@
 
 #include "isr.h"
 
-
-//-------------------------------------------------------------------------------------------------------------------
-//  @brief      PROTA中断执行函数
-//  @return     void   
-//  @since      v1.0
-//  Sample usage:               当A口启用中断功能且发生中断的时候会自动执行该函数
-//-------------------------------------------------------------------------------------------------------------------
 void PORTA_IRQHandler(void)
 {
     //清除中断标志第一种方法直接操作寄存器，每一位对应一个引脚
@@ -48,6 +41,12 @@ void PORTC_IRQHandler(void)
     VSYNC();
 }
 
+void PORTE_IRQHandler(void)
+{
+    PORTE->ISFR = 0xffffffff;
+    gpio_turn(E1);
+}
+
 
 void DMA0_IRQHandler(void)
 {
@@ -56,15 +55,14 @@ void DMA0_IRQHandler(void)
 	
 }
 
+void PIT0_IRQHandler(void)
+{
+    PIT_FlAG_CLR(pit0);
+    gpio_turn(A19);
+
+}
 
 
-
-//-------------------------------------------------------------------------------------------------------------------
-//  @brief      UART3中断执行函数
-//  @return     void   
-//  @since      v1.0
-//  Sample usage:               当UART3启用中断功能且发生中断的时候会自动执行该函数
-//-------------------------------------------------------------------------------------------------------------------
 void UART3_RX_TX_IRQHandler(void)
 {
     if(UART3->S1 & UART_S1_RDRF_MASK)                                     //接收数据寄存器满
@@ -101,7 +99,6 @@ void DMA0_IRQHandler(void)
     ;
 }
 记得进入中断后清除标志位
-
 
 DMA0_IRQHandler  
 DMA1_IRQHandler  

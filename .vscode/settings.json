@@ -1,5 +1,13 @@
 {
     "files.associations": {
-        "headfile.h": "c"
+        "headfile.h": "c",
+        "mk60_dma.h": "c",
+        "mk60_wdog.h": "c",
+        "common.h": "c",
+        "misc.h": "c",
+        "mk60_port_cfg.h": "c",
+        "handle.h": "c",
+        "control.h": "c",
+        "isr.h": "c"
     }
 }

@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <settings>
     <DebugChecksum>
-        <Checksum>4182389957</Checksum>
+        <Checksum>3750236591</Checksum>
     </DebugChecksum>
     <Exceptions>
         <StopOnUncaught>_ 0</StopOnUncaught>
@@ -22,6 +22,7 @@
         <ByteLimit>50</ByteLimit>
     </Stack>
     <Disassembly>
+        <MixedMode>1</MixedMode>
         <InstrCount>0</InstrCount>
     </Disassembly>
     <CallStack>
@@ -141,7 +142,9 @@
         <Count>0</Count>
     </Breakpoints2>
     <Aliases>
-        <Count>0</Count>
+        <A0>_ "D:\恩智浦智能车\逐飞K66\程序\Camera V1.1 图像大津法\Libraries\drives\src\MK60_gpio.c" ""</A0>
+        <A1>_ "D:\恩智浦智能车\逐飞K66\程序\Camera V1.1 图像大津法\Libraries\drives\src\MK60_port.c" ""</A1>
+        <Count>2</Count>
         <SuppressDialog>0</SuppressDialog>
     </Aliases>
 </settings>

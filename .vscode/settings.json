@@ -8,6 +8,10 @@
         "mk60_port_cfg.h": "c",
         "handle.h": "c",
         "control.h": "c",
-        "isr.h": "c"
+        "isr.h": "c",
+        "seekfree_mt9v032.h": "c",
+        "test.h": "c",
+        "seekfree_oled.h": "c",
+        "ff.h": "c"
     }
 }

@@ -1275,6 +1275,9 @@
             <name>$PROJ_DIR$\..\..\USER\src\sysinit.c</name>
         </file>
         <file>
+            <name>$PROJ_DIR$\..\..\USER\src\test.c</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\..\..\..\Libraries\version.txt</name>
         </file>
     </group>

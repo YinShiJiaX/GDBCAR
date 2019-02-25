@@ -76,5 +76,6 @@
 #include "handle.h"
 #include "control.h"
 #include "pid.h"
+#include "test.h"
 
 #endif/*_headfile_h*/

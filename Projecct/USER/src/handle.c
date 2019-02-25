@@ -8,6 +8,9 @@ uchar Weight[60] = { 5,  6,  8,  9, 11, 12, 14, 15, 17, 18,	// 50
 				    4,  3,  3,  2,  1,    1,  1,  1,  1,  1,	// 20
 					1,  1,  1,  1,  1,    1,  1,  1,  1,  1,
 					1,  1,  1,  1,  1,    1,  1,  1,  1,  1};	//加权平均参数
+int32 Current_Point = 0;                            //当前中点值
+
+
 
 uchar Left_Line[62], Right_Line[62], Mid_Line[62];	// 原始左右边界数据
 uchar Left_Add_Line[62], Right_Add_Line[62];		// 左右边界补线数据
@@ -42,6 +45,23 @@ int16 Annulus_Delay = 0;
 uchar Annulus_Mode = 0;		// 准备进环路状态
 /************** 环路相关变量 *************/
 
+/***************十字相关变量******************/
+uchar Cross_Flag = 0;
+uchar Cross_Flag_Count = 0;//用来记录是第几次扫描到十字了
+/***************十字相关变量结束**************/
+
+/***************环岛相关变量*****************/
+ uchar Rotary_Island_Left = 0;
+ uchar Rotary_Island_Right = 0;//用来判断环岛进出状态
+ uchar Rotary_Island_End_Point = 0;//用来寻找补线终点
+ uchar Rotary_Island_Start_Point = 0;//用来寻找补线起点
+ uchar Rotary_Island_Left_Flag = 0;
+ uchar Rotary_Island_Right_Flag = 0;//准备进入环岛标志位
+ uchar Rotary_Island_Count0 = 0;
+ uchar Rotary_Island_Count1 = 0;
+ uchar Rotary_Island_Count2 = 0;
+/***************环岛相关变量结束*****************/
+
 void Annulus_Control(void)
 {
 	Annulus_Left = Annulus_Count[Annulus_Times++];
@@ -72,9 +92,15 @@ void Image_Para_Init(void)
 	Right_Add_Line[61] = 159;
 	Width_Real[61] = 158;
 	Width_Add[61] = 158;
+	Right_Add_Flag[61] = 0;
+	Left_Add_Flag[61] = 0;
 	
-	Annulus_Left = 1;	// 置位左环路
+	Annulus_Left = 0;	// 置位左环路
 	Annulus_Right = 0; 
+}
+for(i = 59;i >= 15;)
+{
+	Left_Line[i]
 }
 
 
@@ -86,20 +112,18 @@ void Image_Para_Init(void)
 */
 void Image_Handle(uchar *data)
 {
-	uchar i;	// 控制行
 	uchar res;	// 用于结果状态判断
-	float Result;	// 用于结果状态判断
 	uchar Add_Start_Max;
 	uchar Width_Check;
 	uchar Weight_Left, Weight_Right;
 	uchar Mid_Left, Mid_Right;
 	uchar Limit_Left, Limit_Right;
-	static uchar Annulus_Count = 0;	// 环路检测计数，防止误判
+	uchar Cross_Line_Count = 0;//用于对环路中全白行计数
+	float Result;	// 用于结果状态判断
 	
 	Line_Count = 0;	// 赛道行数复位
 	Starting_Line_Flag = 0;	// 起跑线标志位复位
-	
-	Annulus_Flag = 0;		// 复位环路标志位
+	Cross_Flag = 0;//十字标志位复位
 	
 	Left_Hazard_Flag = 0;	// 复位左右障碍物标志位
 	Right_Hazard_Flag = 0;
@@ -109,8 +133,9 @@ void Image_Handle(uchar *data)
 	Left_Add_Stop = 0;
 	Right_Add_Stop = 0;
 	
-	/***************************** 第一行特殊处理 *****************************/
-	
+
+
+	/***************************** 第一行特殊处理 *****************************/	
 	res = First_Line_Handle(data);
 	if (res == 0)
 	{
@@ -119,13 +144,20 @@ void Image_Handle(uchar *data)
 	}
 	Out_Side = 0;
 	Line_Count = 59;
-	
 	/*************************** 第一行特殊处理结束 ***************************/
 	
-	for (i = 59; i >= 15;)	// 仅处理前40行图像，隔行后仅处理20行数据
+
+	/***********仅处理前40行图像，隔行后仅处理20行数据***************************/
+	for (uchar i = 59; i >= 15;)	
 	{
 		i -= 2;	// 隔行处理，减小单片机负荷
 		
+		Jump[i] = Corrode_Filter(i, data, Limit_Left, Limit_Right);	// 使用腐蚀滤波算法先对本行赛道进行预处理，返回跳变点数量
+		if (Jump[i] >= 5 && i>= 21)
+		{
+			Starting_Line_Flag = 1;
+		}
+		/**************************由上一行状态对本行进行边界限定******************************/
 		if (Left_Add_Flag[i+2])
 		{
 			Limit_Left = Left_Line[i+2];
@@ -158,54 +190,22 @@ void Image_Handle(uchar *data)
 				Limit_Right = Right_Add_Line[i+2]-1;
 			}
 		}
-		Jump[i] = Corrode_Filter(i, data, Limit_Left, Limit_Right);	// 使用腐蚀滤波算法先对本行赛道进行预处理，返回跳变点数量
-		if (Jump[i] >= 5 && i>= 21)
+		/**************************由上一行状态对本行进行边界限定结束************************/
+
+
+		/*************************赛道结束判定与扫描边界线************************************/	
+		if (!data[i*160 + Mid_Line[i+2]])//前2行中点在本行为黑点，赛道结束
 		{
-			Starting_Line_Flag = 1;
-		}
-			
-		if (!data[i*160 + Mid_Line[i+2]])//前2行中点在本行为黑点，可能是赛道结束，也可能是环路
-		{
-			if (Left_Add_Start && !Left_Add_Stop && Right_Add_Start && !Right_Add_Stop)	//  两边都有补线，但没有补线结束，即遇到了环路
-			{ 
-				if (Left_Add_Start >= Right_Add_Start)
-				{
-					Add_Start_Max = Left_Add_Start;
-				}
-				else
-				{
-					Add_Start_Max = Right_Add_Start;
-				}
-				if (Width_Real[i+2] > Width_Real[Add_Start_Max] && res == 1)
-				{
-					if (Left_Ka <= 0 && Right_Ka >= 0)
-					{
-						if (Left_Add_Start >= 21 && Left_Add_Start <= 55 && Right_Add_Start >= 21 && Right_Add_Start <= 55)
-						{
-							if (Left_Add_Start >= i+4 && Right_Add_Start >= i+4)
-							{
-								if (Left_Ka <= -1.2|| Right_Ka >= 1.2)
-								{	
-									break;									
-								}
-								else
-								{
-									Annulus_Control();	// 启动环路专用算法
-									break;
-								}
-							}
-						}
-					}
-				}
-			}
 			break;
 		}
-		else	// 使用前2行中点向两边扫描边界
+		else
 		{
 			Traversal_Mid_Line(i, data, Mid_Line[i+2], 1, 159, Left_Line, Right_Line, Left_Add_Line, Right_Add_Line);
 		}
-			
-		/**************************** 补线检测开始 ****************************/
+		/*************************赛道结束判定与扫描中线结束**********************************/		
+
+
+		/**************************** 补线检测开始 ******************************************/
 		if (Starting_Line_Flag)
 		{
 			Width_Check = 7;
@@ -214,7 +214,7 @@ void Image_Handle(uchar *data)
 		{
 			Width_Check = 2;
 		}
-		if (Width_Real[i] > Width_Min+Width_Check)	// 赛道宽度变宽，可能是十字或环路
+		if (Width_Real[i] > Width_Min+Width_Check)	// 赛道宽度变宽，可能是十字或环岛
 		{
 			if (Left_Add_Line[i] <  Left_Add_Line[i+2])
 			{
@@ -239,34 +239,9 @@ void Image_Handle(uchar *data)
 				}
 			}
 		}
+		/**************************** 补线检测结束 ************************************/		
 		
-		/**************************** 补线检测结束 ****************************/
-		
-		
-		/**************************** 障碍检测开始 ****************************/
-		
-		else
-		{
-			if ((i != 59) && (Width_Real[i]+12 < Width_Real[i+2]) && (Jump[i] == 2))
-			{
-				if (Left_Add_Line[i] > Left_Add_Line[i+2] + 6 && !Left_Add_Start)	// 本行与前一行左边界有较大突变且没有补线
-				{
-					Left_Hazard_Flag = i;	// 障碍物标志位置位
-				}
-				if (Right_Add_Line[i] < Right_Add_Line[i+2] - 6 && !Right_Add_Start)	// 本行与前一行右边界有较大突变且没有补线
-				{
-					Right_Hazard_Flag = i;	// 障碍物标志位置位
-				}
-				
-				
-			}
-		}
-		
-		/**************************** 障碍检测结束 ****************************/
-		
-		
-		/*************************** 第一轮补线开始 ***************************/
-		
+		/*************************** 第一轮补线开始 ***********************************/
 		if (Left_Add_Flag[i])	// 左侧需要补线
 		{
 			if (i >= 53)	// 前三行补线不算
@@ -284,15 +259,7 @@ void Image_Handle(uchar *data)
 				if (!Left_Add_Start)	// 之前没有补线
 				{
 					Left_Add_Start = i;	// 记录左侧补线开始行
-					if (Left_Hazard_Flag)	// 左侧有障碍物
-					{
-						Left_Ka = 0;
-						Left_Kb = Left_Add_Line[i+2];	// 竖直向上补线
-					}
-					else	// 斜率补线
-					{
-						Curve_Fitting(&Left_Ka, &Left_Kb, &Left_Add_Start, Left_Add_Line, Left_Add_Flag, 1);	// 使用两点法拟合直线
-					}
+					Curve_Fitting(&Left_Ka, &Left_Kb, &Left_Add_Start, Left_Add_Line, Left_Add_Flag, 1);	// 使用两点法拟合直线
 				}
 				Left_Add_Line[i] = Calculate_Add(i, Left_Ka, Left_Kb);	// 补线完成
 			}
@@ -328,15 +295,7 @@ void Image_Handle(uchar *data)
 				if (!Right_Add_Start)	// 之前没有补线
 				{
 					Right_Add_Start = i;	// 记录右侧补线开始行
-					if (Right_Hazard_Flag)	// 右侧有障碍物
-					{
-						Right_Ka = 0;
-						Right_Kb = Right_Add_Line[i+2];	// 竖直向上补线
-					}
-					else
-					{
-						Curve_Fitting(&Right_Ka, &Right_Kb, &Right_Add_Start, Right_Add_Line, Right_Add_Flag, 2);	// 使用两点法拟合直线
-					}
+					Curve_Fitting(&Right_Ka, &Right_Kb, &Right_Add_Start, Right_Add_Line, Right_Add_Flag, 2);	// 使用两点法拟合直线
 				}
 				Right_Add_Line[i] = Calculate_Add(i, Right_Ka, Right_Kb);	// 补线完成
 			}
@@ -354,50 +313,136 @@ void Image_Handle(uchar *data)
 				}
 			}
 		}
-		
 		/*************************** 第一轮补线结束 ***************************/
 		
-//		if ((Left_Add_Flag[i] && Right_Add_Flag[i]) || (!Left_Add_Flag[i] && !Right_Add_Flag[i]))
-//		{
-			Width_Add[i] = Right_Add_Line[i] - Left_Add_Line[i];	// 重新计算赛道宽度
-			Mid_Line[i] = (Right_Add_Line[i] + Left_Add_Line[i]) / 2;	// 计算中线
-//		}
-//		else
-//		{
-//			Width_Add[i] = Right_Add_Line[i] - Left_Add_Line[i];	// 重新计算赛道宽度
-//			Mid_Line[i] = Mid_Line[i+2];
-//		}
 
+		/**************************重新计算赛道宽度并计算中线****************************/
+		Width_Add[i] = Right_Add_Line[i] - Left_Add_Line[i];	
+		Mid_Line[i] = (Right_Add_Line[i] + Left_Add_Line[i]) / 2;
+		/**************************重新计算赛道宽度并计算中线结束************************/
+
+
+		/********************************更新最小赛道宽度并记录成功识别到的赛道行数*****************************/
 		if (Width_Add[i] < Width_Min)
 		{
-			Width_Min = Width_Add[i];	// 更新最小赛道宽度
+			Width_Min = Width_Add[i];	
 		}
 		if (Width_Add[i] <= 20)	// 赛道宽度太小
 		{
 			break;
 		}
 		Line_Count = i;	// 记录成功识别到的赛道行数
+		/********************************更新最小赛道宽度并记录成功识别到的赛道行数结束*****************************/
 	}
+	/***********仅处理前40行图像，隔行后仅处理20行数据结束***************************/
+
+
+	/**************************十字和环岛检测*****************************************/
+	for(uchar i = 15;i < 59;)
+	{
+		i += 2;
+
+		if(Left_Add_Flag[i] && Right_Add_Flag[i])//十字检测
+		{
+			Cross_Line_Count++;
+			if(Cross_Line_Count >= 14)
+			{
+				Cross_Flag = 1;
+			}
+		}
+
+		if((Left_Line[31] <= (Left_Line[51] + 20)) && 
+				(Left_Line[31] >= (Left_Line[51] + 10)) && 
+				!Left_Add_Flag[i] && Right_Add_Flag[i])
+		{
+			Rotary_Island_Count0++;
+			if(Rotary_Island_Count0 > 10 && Rotary_Island_Right == 0)
+			{
+				Rotary_Island_Right++;
+				// gpio_init(BUZZER,GPO,1);	    //开蜂鸣器
+    		// systick_delay_ms(300);
+    		// gpio_set(BUZZER,0);            //关蜂鸣器   
+	 		}	
+		}
+		if(Rotary_Island_Right == 1)
+		{
+			if(Right_Add_Flag[59])
+			{
+				Rotary_Island_Right++;
+				// gpio_init(BUZZER,GPO,1);	    //开蜂鸣器
+    		// systick_delay_ms(300);
+    		// gpio_set(BUZZER,0);            //关蜂鸣器   
+
+			}
+		}
+		if(Rotary_Island_Right == 2)
+		{
+			if(!data[55*160 + 153] && !data[57*160 + 153] && !data[59*160 + 153])
+			{
+				Rotary_Island_Right++;
+				// gpio_init(BUZZER,GPO,1);	    //开蜂鸣器
+    		// systick_delay_ms(300);
+    		// gpio_set(BUZZER,0);            //关蜂鸣器 
+			}
+		}
+	}
+	/**************************十字和环岛检测结束***************************************/
+
+
 	/*************************** 第二轮补线修复开始 ***************************/
-	if (!Annulus_Flag)	// 不是环路
+	if (!Cross_Flag && !Rotary_Island_Right_Flag)	// 不是环岛而且不是十字
 	{
 		if (Left_Add_Start)		// 左边界需要补线
 		{
-			Line_Repair(Left_Add_Start, Left_Add_Stop, data, Left_Line, Left_Add_Line, Left_Add_Flag, 1);
+			//Line_Repair(Left_Add_Start, Left_Add_Stop, data, Left_Line, Left_Add_Line, Left_Add_Flag, 1);
 		}
 		if (Right_Add_Start)	// 右边界需要补线
 		{
-			Line_Repair(Right_Add_Start, Right_Add_Stop, data, Right_Line, Right_Add_Line, Right_Add_Flag, 2);
+			//Line_Repair(Right_Add_Start, Right_Add_Stop, data, Right_Line, Right_Add_Line, Right_Add_Flag, 2);
+		}
+	}
+	/*************************** 第二轮补线修复结束 ***************************/
+
+
+	/********************对相应的特殊元素做处理********************************/
+	if(Cross_Flag)//十字
+	{  	
+
+
+    // gpio_init(BUZZER,GPO,1);	    //开蜂鸣器
+    // systick_delay_ms(300);
+    // gpio_set(BUZZER,0);            //关蜂鸣器  	
+		for(uchar i = 59;i >= 15;)
+		{
+			i -= 2;
+			Left_Add_Line[i] = 7;
+			Right_Add_Line[i] = 159;
+		}	
+	}
+	if(Rotary_Island_Right == 1 || Rotary_Island_Right == 2)
+	{
+		for(int i = 59;i >= 15;)
+		{
+			Right_Add_Line[i] = Left_Add_Line[i] + 128 + i - 59;
+			i -= 2;
+		}
+	}
+	if(Rotary_Island_Right == 3)
+	{
+		for(uchar i = 59;i >= 15;)
+		{
+			Left_Add_Line[i] = Right_Add_Line[i] - 80 + 59 - i;
+			i -= 2;
+			Rotary_Island_Right == 0;
 		}
 	}
 	
-	/*************************** 第二轮补线修复结束 ***************************/
 	
-	
-	/****************************** 中线修复开始 ******************************/
-	
+	/********************对相应的特殊元素做处理结束********************************/
+
+
+	/****************************** 中线修复开始 ******************************/	
 	Mid_Line_Repair(Line_Count, data);
-	
 	/****************************** 中线修复结束 ******************************/
 }
 
@@ -453,7 +498,7 @@ int32 Point_Average(void)
 	{
 		Line_Count = Fresight[Fres][0];
 	}
-	
+	/*
 	if (Annulus_Flag)
 	{
 		if (Line_Count <= Fresight[Fres][1])
@@ -461,6 +506,7 @@ int32 Point_Average(void)
 			Line_Count = Fresight[Fres][1];
 		}
 	}
+	*/
 	
 	if (Out_Side || Line_Count >= 57)	// 出界或者摄像头图像异常
 	{
@@ -485,7 +531,7 @@ int32 Point_Average(void)
 		Point = Sum / ((61-Line_Count)/2);	// 对中线求平均
 		
 		Point = Point*0.8 + Last_Point*0.2;	// 低通滤波
-		Point = range_protect(Point, 1, 159);		// 限幅，防止补偿溢出
+		Point = Range_Protect(Point, 1, 159);		// 限幅，防止补偿溢出
 		
 		/*** 障碍物特殊情况处理 ***/
 		if (Left_Hazard_Flag)			//左侧有障碍物且需要补线，即使误判也不会造成影响
@@ -567,7 +613,7 @@ int32 Area_Calculate(void)
 	}
 	
 	Result = 50*(Area_Right - Area_Left)/(Area_Right + Area_Left);
-	Result = range_protect(Result, -40, 40);
+	Result = Range_Protect(Result, -40, 40);
 	
 	Result = Result * 0.8 + Result_Last * 0.2;
 	Result_Last = Result;
@@ -678,7 +724,7 @@ uchar Calculate_Add(uchar i, float Ka, float Kb)	// 计算补线坐标
 	int32 Result;
 	
 	res = i * Ka + Kb;
-	Result = range_protect((int32)res, 1, 159);
+	Result = Range_Protect((int32)res, 1, 159);
 	
 	return (uchar)Result;
 }
@@ -697,7 +743,7 @@ uchar Corrode_Filter(uchar i, uchar *data, uchar Left_Min, uchar Right_Max)
 	
 	Test_Jump = 0;
 	
-	Right_Max = range_protect(Right_Max, 1, 159);	// 保留右侧部分区域，防止溢出
+	Right_Max = Range_Protect(Right_Max, 1, 159);	// 保留右侧部分区域，防止溢出
 	
 	for (j = Left_Min; j <= Right_Max; j++)	// 从左向右扫描，方向不影响结果
 	{
@@ -963,7 +1009,6 @@ uchar First_Line_Handle(uchar *data)
 	{
 		Traversal_Mid_Line(i, data, Mid_Line[i+2], 1, 159, Left_Line, Right_Line, Left_Add_Line, Right_Add_Line);	// 从前一行中点向两边扫描
 	}
-	
 	Left_Line[61] = Left_Line[59];
 	Right_Line[61] = Right_Line[59];
 	Left_Add_Line[61] = Left_Add_Line[59];
@@ -1189,15 +1234,15 @@ void Traversal_Mid_Line(uchar i, uchar *data, uchar Mid, uchar Left_Min, uchar R
 	Left_Add_Flag[i] = 1;	// 初始化补线标志位
 	Right_Add_Flag[i] = 1;
 	
-	Left_Min = range_protect(Left_Min, 1, 159);	// 限幅，防止出错
+	Left_Min = Range_Protect(Left_Min, 1, 159);	// 限幅，防止出错
 	if (Left_Add_Flag[i+2])
 	{
-		Left_Min = range_protect(Left_Min, Left_Add_Line[i+2]-30, 159);
+		Left_Min = Range_Protect(Left_Min, Left_Add_Line[i+2], 159);
 	}
-	Right_Max = range_protect(Right_Max, 1, 159);
+	Right_Max = Range_Protect(Right_Max, 1, 159);
 	if (Right_Add_Flag[i+2])
 	{
-		Right_Max = range_protect(Right_Max, 1, Right_Add_Line[i+2]+30);
+		Right_Max = Range_Protect(Right_Max, 1, Right_Add_Line[i+2]);
 	}
 	
 	Right_Line[i] = Right_Max;
@@ -1241,6 +1286,7 @@ void Traversal_Mid_Line(uchar i, uchar *data, uchar Mid, uchar Left_Min, uchar R
 	}
 	if (Left_Add_Flag[i])	// 左边界需要补线
 	{
+		
 		if (!data[(i-2)*160 + Left_Add_Line[i+2]] || !data[(i-4)*160 + Left_Add_Line[i+2]])	// 可能是反光干扰
 		{
 			Left_Add_Flag[i] = 0;	//左边界不需要补线，清除标志位
@@ -1297,28 +1343,13 @@ void Line_Repair(uchar Start, uchar Stop, uchar *data, uchar *Line, uchar *Line_
 	uchar i, End;	// 控制行
 	uchar Hazard_Width;
 	float Ka, Kb;
-	
+	/****左补线，右边开始行小于左边停止行，有始有终，左边没有障碍物****/
 	if ((Mode == 1) && (Right_Add_Start <= Stop) && Stop && Start <= 53 && !Left_Hazard_Flag)	// 左边界补线
 	{
 		for (i = Start+2; i >= Stop+2;)
 		{
 			i -= 2;
-			Line_Add[i] = range_protect(Right_Add_Line[i] - Width_Add[i+2]+5, 1, Right_Add_Line[i]); 
-			Width_Add[i] = Width_Add[i+2]-3;
-			
-			if (Width_Add[i] <= 20)
-			{
-				Line_Count = i;
-				break;
-			}
-		}
-	}
-	if ((Mode == 2) && (Left_Add_Start <= Stop) && Stop && Start <= 53 && !Right_Hazard_Flag)	// 右边界补线
-	{
-		for (i = Start+2; i >= Stop+2;)
-		{
-			i -= 2;
-			Line_Add[i] = range_protect(Left_Add_Line[i] + Width_Add[i+2]-5, Left_Add_Line[i], 159); 
+			Line_Add[i] = Range_Protect(Right_Add_Line[i] - Width_Add[i+2]+5, 1, Right_Add_Line[i]); 
 			Width_Add[i] = Width_Add[i+2]-3;
 			
 			if (Width_Add[i] <= 20)
@@ -1380,7 +1411,7 @@ void Line_Repair(uchar Start, uchar Stop, uchar *data, uchar *Line, uchar *Line_
 				{
 					i -= 2;
 					res = i * Ka + Kb;
-					Line_Add[i] = range_protect((int32)res, 1, 159);
+					Line_Add[i] = Range_Protect((int32)res, 1, 159);
 				}
 			}
 			else	// 将起始行和结束行计算斜率补线
@@ -1421,7 +1452,120 @@ void Line_Repair(uchar Start, uchar Stop, uchar *data, uchar *Line, uchar *Line_
 				{
 					i += 2;
 					res = i * Ka + Kb;
-					Line_Add[i] = range_protect((int32)res, 1, 159);
+					Line_Add[i] = Range_Protect((int32)res, 1, 159);
+				}
+			}
+		}
+	}
+	if ((Mode == 2) && (Left_Add_Start <= Stop) && Stop && Start <= 53 && !Right_Hazard_Flag)	// 右边界补线
+	{
+		for (i = Start+2; i >= Stop+2;)
+		{
+			i -= 2;
+			Line_Add[i] = Range_Protect(Left_Add_Line[i] + Width_Add[i+2]-5, Left_Add_Line[i], 159); 
+			Width_Add[i] = Width_Add[i+2]-3;
+			
+			if (Width_Add[i] <= 20)
+			{
+				Line_Count = i;
+				break;
+			}
+		}
+	}
+	else
+	{
+		if (Stop)	// 有始有终
+		{
+			if (((Mode == 1 && Left_Add_Start >= 55) || (Mode == 2 && Right_Add_Start >= 55))
+				&& ((Mode == 1 && Line_Add[Left_Add_Stop] > Line_Add[59]) 
+				|| (Mode == 2 && Line_Add[Right_Add_Stop] < Line_Add[59])))// 只有较少行需要补线
+			{
+				if(Stop >= Line_Count + 4)
+				{
+					End = Stop - 4;
+				}
+				else if(Stop >= Line_Count + 2)
+				{
+					End = Stop - 2;
+				}
+				else
+				{
+					End = 0;
+				}
+				if (End)
+				{
+					Ka = 1.0*(Line_Add[Stop] - Line_Add[End]) / (Stop - End);
+					Kb = 1.0*Line_Add[Stop] - (Ka * Stop);
+					
+					if (Mode == 1)
+					{
+						if (Line_Add[59] > 59 * Ka + Kb)
+						{
+							Ka = 1.0*(Line_Add[Start] - Line_Add[Stop-2]) / (Start - (Stop-2));
+							Kb = 1.0*Line_Add[Start] - (Ka * Start);
+						}
+					}
+					else if (Mode == 2)
+					{
+						if (Line_Add[59] < 59 * Ka + Kb)
+						{
+							Ka = 1.0*(Line_Add[Start] - Line_Add[Stop-2]) / (Start - (Stop-2));
+							Kb = 1.0*Line_Add[Start] - (Ka * Start);
+						}
+					}
+				}
+				else
+				{
+					Ka = 1.0*(Line_Add[Start] - Line_Add[Stop]) / (Start - Stop);
+					Kb = 1.0*Line_Add[Start] - (Ka * Start);
+				}
+				
+				for (i = 61; i > Stop; )
+				{
+					i -= 2;
+					res = i * Ka + Kb;
+					Line_Add[i] = Range_Protect((int32)res, 1, 159);
+				}
+			}
+			else	// 将起始行和结束行计算斜率补线
+			{
+				if (Start <= 57)
+				{
+					Start +=2;
+				}
+				if (Stop >= Line_Count + 4)
+				{
+					Stop -= 4;
+				}
+				else if (Stop >= Line_Count + 2)
+				{
+					Stop -= 2;
+				}
+				Ka = 1.0*(Line_Add[Start] - Line_Add[Stop]) / (Start - Stop);
+				Kb = 1.0*Line_Add[Start] - (Ka * Start);
+				
+				if (Mode == 1)
+				{
+					if (Line_Add[59] > 59 * Ka + Kb)
+					{
+						Ka = 1.0*(Line_Add[Start] - Line_Add[Stop]) / (Start - Stop);
+						Kb = 1.0*Line_Add[Start] - (Ka * Start);
+					}
+				}
+				else if (Mode == 2)
+				{
+					if (Line_Add[59] < 59 * Ka + Kb)
+					{
+						Ka = 1.0*(Line_Add[Start] - Line_Add[Stop]) / (Start - Stop);
+						Kb = 1.0*Line_Add[Start] - (Ka * Start);
+					}
+				}
+				
+				for (i = Stop; i <= Start; )
+				{
+					i += 2;
+					res = i * Ka + Kb;
+					Line_Add[i] = Range_Protect((int32)res, 1, 159);
 				}
 			}
 		}
@@ -1432,7 +1576,7 @@ void Line_Repair(uchar Start, uchar Stop, uchar *data, uchar *Line, uchar *Line_
 		for (i = Left_Hazard_Flag; i < 59; )
 		{
 			i += 2;
-			Line_Add[i] = range_protect((int32)Line_Add[i-2]-5, Line_Add[i], 159);
+			Line_Add[i] = Range_Protect((int32)Line_Add[i-2]-5, Line_Add[i], 159);
 		}
 	}
 	else if (Mode == 2 && Right_Hazard_Flag)
@@ -1440,7 +1584,7 @@ void Line_Repair(uchar Start, uchar Stop, uchar *data, uchar *Line, uchar *Line_
 		for (i = Right_Hazard_Flag; i < 59; )
 		{
 			i += 2;
-			Line_Add[i] = range_protect((int32)Line_Add[i-2]+5, 1, Line_Add[i]);
+			Line_Add[i] = Range_Protect((int32)Line_Add[i-2]+5, 1, Line_Add[i]);
 		}
 	}
 }
@@ -1456,26 +1600,6 @@ void Mid_Line_Repair(uchar count, uchar *data)
 	uchar i;	// 控制行
 	uchar Hazard_Width;
 	
-//	if (Left_Hazard_Flag)
-//	{
-//		Line_Count = Left_Hazard_Flag;
-//		Hazard_Width = Left_Add_Line[Left_Hazard_Flag];
-//		for (i = 61; i >= Left_Hazard_Flag+2;)
-//		{
-//			i -= 2;
-//			Left_Add_Line[i] = 0.7*Hazard_Width + 0.3*Left_Add_Line[i];
-//		}
-//	}
-//	if (Right_Hazard_Flag)
-//	{
-//		Line_Count = Right_Hazard_Flag;
-//		Hazard_Width = Right_Add_Line[Right_Hazard_Flag];
-//		for (i = 61; i >= Right_Hazard_Flag+2;)
-//		{
-//			i -= 2;
-//			Right_Add_Line[i] = 0.7*Hazard_Width + 0.3*Right_Add_Line[i];
-//		}
-//	}
 	
 	for (i = 61; i >= count+2;)
 	{
@@ -1483,13 +1607,13 @@ void Mid_Line_Repair(uchar count, uchar *data)
 		Mid_Line[i] = (Right_Add_Line[i] + Left_Add_Line[i]) / 2;	// 计算赛道中点
 		Width_Add[i] = Right_Add_Line[i] - Left_Add_Line[i];		// 计算赛道宽度
 			
-	/**//*************************** 上位机显示边界 ***************************/
-	/**/data[i*160 + Left_Add_Line[i] + 6] = 0;	// 上位机显示补线后的左边界，不用时屏蔽
-	/**/data[i*160 + Right_Add_Line[i] - 6] = 0;	// 上位机显示补线后的右边界，不用时屏蔽
-	/**/data[i*160 + Mid_Line[i]] = 0;			// 上位机显示中线，不用时屏蔽
-	/**/data[i*160 + Left_Line[i] + 1] = 0;		// 上位机显示原始左边界，不用时屏蔽
-	/**/data[i*160 + Right_Line[i] - 1] = 0;		// 上位机显示原始右边界，不用时屏蔽
-	/**//*************************** 上位机显示边界 ***************************/
+		/*************************** 上位机显示边界 ***************************/
+		data[i*160 + Left_Add_Line[i] + 6] = 0;	// 上位机显示补线后的左边界，不用时屏蔽
+		data[i*160 + Right_Add_Line[i] - 6] = 0;	// 上位机显示补线后的右边界，不用时屏蔽
+		data[i*160 + Mid_Line[i]] = 0;			// 上位机显示中线，不用时屏蔽
+		data[i*160 + Left_Line[i] + 1] = 0;		// 上位机显示原始左边界，不用时屏蔽
+		data[i*160 + Right_Line[i] - 1] = 0;		// 上位机显示原始右边界，不用时屏蔽
+		/*************************** 上位机显示边界结束***************************/
 	}
 	Mid_Line[61] = Mid_Line[59];
 }
@@ -1535,30 +1659,11 @@ uchar Point_Weight(void)
 			Sum += Mid_Line[i] * Weight[59-i];
 			Weight_Count += Weight[59-i];
 		}
-		Point = range_protect(Sum / Weight_Count, 1, 159);
-
-							/*** 障碍物特殊情况处理 ***/
-//		if (Left_Hazard_Flag)			//左侧有障碍物且需要补线，即使误判也不会造成影响
-//		{
-//			Point = Mid_Line[Left_Hazard_Flag]+6;	//使用障碍物出现的那一行中点作为目标点
-//			if (Left_Hazard_Flag < 80)
-//			{
-//				Point += 3;
-//			}
-//		}
-//		else if (Right_Hazard_Flag)	//右测有障碍物且需要补线，即使误判也不会造成影响
-//		{
-//			Point = Mid_Line[Right_Hazard_Flag]-6;//使用障碍物出现的那一行中点作为目标点
-//			if (Right_Hazard_Flag < 80)
-//			{
-//				Point -= 5;
-//			}
-//		}
-//		Point = Mid_Line[59];
-		Point = range_protect(Point, 2, 158);
+		Point = Range_Protect(Sum / Weight_Count, 1, 159);
+		Point = Range_Protect(Point, 2, 158);
 		Last_Point = Point;
 		
-							/***** 使用最远行数据和目标点作为前瞻 *****/
+		/***** 使用最远行数据和目标点作为前瞻 *****/
 		if (Line_Count >= 25)
 		{
 			Point_Mid = Mid_Line[60-30];
@@ -1796,21 +1901,20 @@ uint8 OtsuThreshold( uint8 *image, uint16 col, uint16 row)
 /*
  * 大津法计算阈值并对图像进行二值化
 */
-void handlegray(void)
+void Handle_Gray(void)
 {
-	uint8 *p;
-	int image_threshold;
-	p = image[0];
+	uchar image_threshold;
 	image_threshold = OtsuThreshold(image[0],COL,ROW);
     //uart_putchar(uart2,0x00);uart_putchar(uart2,0xff);uart_putchar(uart2,0x01);uart_putchar(uart2,0x01);//发送命令
-    for(int i = 0; i < ROW; i++)
+	
+    for(int i = 14; i < ROW; i++)
     {
 		for(int j = 0;j < COL;j++)
 		{
 			if(image[i][j] > image_threshold)  
 			{
 				//uart_putchar(uart2,0xff);
-				image[i][j] = 1;
+				image[i][j] = 255;
 			}
         	else
 			{
@@ -1819,6 +1923,4 @@ void handlegray(void)
 			}
 		}
     }
-
-
 }

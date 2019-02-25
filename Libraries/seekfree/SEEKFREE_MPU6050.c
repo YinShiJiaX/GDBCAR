@@ -41,6 +41,14 @@ int16 mpu_acc_x,mpu_acc_y,mpu_acc_z;
 //-------------------------------------------------------------------------------------------------------------------
 void InitMPU6050(void)
 {
+    int i = 0, j = 0;
+    for(i = 0;i < 1000;i++)
+    {
+        for(j = 0;i < 1000;i++)
+        {
+            ;
+        }
+    }
     simiic_write_reg(MPU6050_DEV_ADDR, PWR_MGMT_1, 0x00);	   //解除休眠状态
     simiic_write_reg(MPU6050_DEV_ADDR, SMPLRT_DIV, 0x07);      //125HZ采样率
     simiic_write_reg(MPU6050_DEV_ADDR, CONFIG, 0x04);          //

@@ -22,6 +22,7 @@ extern uchar Mid_Line[62];
 extern uchar Left_Add_Line[62];
 extern uchar Right_Add_Line[62];
 extern int32 Area_Left, Area_Right;
+extern int32 Current_Point;
 //º¯ÊýÉùÃ÷
 void Image_Para_Init(void);
 void Annulus_Control(void);
@@ -41,7 +42,7 @@ void Traversal_Mid_Line(uchar i, uchar *data, uchar Mid, uchar Left_Min, uchar R
 uchar *Left_Line, uchar *Right_Line, uchar *Left_Add_Line, uchar *Right_Add_Line);
 void Line_Repair(uchar Start, uchar Stop, uchar *data, uchar *Line, uchar *Line_Add, uchar *Add_Flag, uchar Mode);
 void Mid_Line_Repair(uchar count, uchar *data);
-void handlegray(void);
+void Handle_Gray(void);
 
 float Calculate_Angle(uchar Point_1, uchar Point_2, uchar Point_3);
 void Curve_Fitting(float *Ka, float *Kb, uchar *Start, uchar *Line, uchar *Add_Flag, uchar Mode);
@@ -49,7 +50,6 @@ uchar Calculate_Add(uchar i, float Ka, float Kb);
 uchar Limit_Scan(uchar i, uchar *data, uchar Point);
 uchar Point_Weight(void);
 char Error_Transform(uchar Data, uchar Set);
-
 
 void img_extract(uint8 *dst, uint8 *src, uint32 srclen);        //½âÑ¹ ¡Ì¡Ì¡Ì
 void img_recontract(uint8 *dst, uint8 *src, uint32 srclen);     //Ñ¹Ëõ¡Ì¡Ì¡Ì

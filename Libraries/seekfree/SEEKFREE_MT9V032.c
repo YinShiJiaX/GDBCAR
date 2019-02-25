@@ -40,6 +40,7 @@
 
 
 uint8   image[ROW][COL];      //图像数组
+
 uint8   receive[3];
 uint8   receive_num = 0;
 uint8   uart_receive_flag = 1;

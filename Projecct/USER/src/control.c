@@ -13,7 +13,7 @@ int32 GyroX=0,GyroXo=0;//陀螺仪（X轴）采集值
 float Gyroroll,GyrorollOld[20];//转向角速度
 static float g_fDirectionControlOutOld, fvalueNew,fvalueOld,g_fDirectionControlOutNew,g_nDirectionControlPeriod;
 float  g_fDirectionControlOut=0;
-
+int32 Steer_Duty    = 0;/***当前需要给舵机的占空比***/
 
 
 
@@ -59,7 +59,7 @@ void motor()
 
 /***********************限幅保护*************************/
 int32 
-range_protect(int32 duty, int32 min, int32 max)
+Range_Protect(int32 duty, int32 min, int32 max)
 {
 	if (duty >= max)
 	{

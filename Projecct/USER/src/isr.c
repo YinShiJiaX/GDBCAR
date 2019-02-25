@@ -28,6 +28,7 @@ void PORTA_IRQHandler(void)
 	PORTA->ISFR = 0xffffffff;
 	//使用我们编写的宏定义清除发生中断的引脚
 	//PORTA_FLAG_CLR(A1);
+  VSYNC();
 
 }
 
@@ -59,6 +60,43 @@ void PIT0_IRQHandler(void)
 {
     PIT_FlAG_CLR(pit0);
     gpio_turn(A19);
+
+}
+
+void PIT1_IRQHandler(void)
+{
+    uint8 dis_image[64][128];
+    int16 pulse1, pulse2, distance, speed1, speed2;
+    pulse1   = ftm_quad_get(ftm1)/4;          //获取FTM 正交解码 的脉冲数(负数表示反方向)
+    pulse2   = ftm_quad_get(ftm2)/4;
+    speed1   = 0.18 * pulse1;
+    speed2   = 0.18 * pulse2;
+    distance = adc_once(GP2Y0A0, ADC_8bit);
+    /*
+    if(distance >= 80)
+    {
+        ftm_pwm_duty(STEER_FTM, STEER_CH, 1400);
+        for(int i = 0; i <= 300; i++)
+        {
+            systick_delay_ms(4);
+            ftm_pwm_duty(STEER_FTM, STEER_CH, 1400 + i);
+        }
+        for(int i = 0; i <= 150; i++)
+        {
+            systick_delay_ms(4);
+            ftm_pwm_duty(STEER_FTM, STEER_CH, 1700 - i);
+        }
+    }
+    */
+    // OLED_Print_Num1(0, 0, distance);
+    // OLED_Print_Num1(0, 2, speed1);
+    // OLED_Print_Num1(0, 4, speed2);
+    //OLED_Print_Num1(0, 0, Current_Point);   /***OLED输出当前中值***/
+    //OLED_Print_Num1(0, 2, (int16)((Left_Add_Line[37] + Right_Add_Line[37])/2) );
+    //OLED_Print_Num1(0, 4, (int16)((Left_Line[37] + Right_Line[37])/2) );
+    ftm_quad_clean(ftm1);
+    ftm_quad_clean(ftm2);
+    PIT_FlAG_CLR(pit1);       //清中断标志位
 
 }
 

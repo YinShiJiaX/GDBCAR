@@ -42,7 +42,7 @@ void adc_start(ADCn_Ch adcn_ch, ADC_nbit bit)
 
 
     ADCX[adcn]->CFG2  = (0
-                         //| ADC_CFG2_MUXSEL_MASK       	//ADC复用选择,0为a通道，1为b通道。
+                         | ADC_CFG2_MUXSEL_MASK       	//ADC复用选择,0为a通道，1为b通道。
                          //| ADC_CFG2_ADACKEN_MASK      //异步时钟输出使能,0为禁止，1为使能。
                          | ADC_CFG2_ADHSC_MASK          //高速配置,0为正常转换序列，1为高速转换序列
                          | ADC_CFG2_ADLSTS(0)           //长采样时间选择，ADCK为4+n个额外循环，额外循环，0为20，1为12，2为6，3为2

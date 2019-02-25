@@ -33,76 +33,58 @@ MT9V032接线定义：
 
 *********************************************/
 #include "headfile.h"
-#include "test.c"
 
-
-uint8 dis_image[64][128];
-uint16 dat;
-uint8 image_threshold;  //图像阈值
-        
-
+uint8 dis_image[64][128];      
 int main(void)
 {
-    int32 Current_Point = 0;/* 当前中点值 ********/
-    int32 Steer_Duty    = 0;/* 当前需要给舵机的占空比 */
     /************************以下为测试例程*********************/
 //    test_led();
 //    test_uart();
 //    test_camera();
 //    test_motor();
+//    test_MPU6050();
+//    test_GP2Y0A0();
+//    test_middleline();
+    /************************测试例程结束*********************/
 
-    /*************************初始化所有模块********************/
-    everythinginit();
+
+    everythinginit();  /***初始化所有模块**********/
     
     while(1)
     {
 
         while(mt9v032_finish_flag)
-        {
+        {   
+
             mt9v032_finish_flag = 0;
+
+            Handle_Gray();                                     /**处理图像并进行二值化**/
+
+            Image_Handle(image[0]);                            /****处理图像，取中线***/
+
+            Current_Point = Point_Average();                   /*******加权平均*******/
+
+            Steer_Duty = Position_PID(80, Current_Point);      /*****位置式pid解算****/
+
+            Steer_Duty = Range_Protect(Steer_Duty, 1400, 1700);/*******限幅保护*******/
             
-            handlegray();/*处理图像并进行二值化*/
-            Image_Handle(image[0]);/*处理图像，取中线*/
-            Current_Point = Point_Average();/*加权平均*/
-            Steer_Duty = Position_PID(90, Current_Point);/**位置式pid解算***/
-            Steer_Duty = range_protect(Steer_Duty, 1400, 1700);
-            ftm_pwm_duty(STEER_FTM, STEER_CH, Steer_Duty);
-            OLED_Print_Num(0, 0, Current_Point);/*OLED输出当前中值*/
-            //printf("%d\n", Point_Average());
+            ftm_pwm_duty(STEER_FTM, STEER_CH, Steer_Duty);     /****改变舵机占空比****/
+
+ 
             
-            //uint32 use_time;
-            //pit_time_start(pit1);
+            for(int num=0; num<64; num++)
+            {
+                memcpy(dis_image[num],&image[num][16],128);
+            }
+            dis_bmp(60,128,dis_image[0],70);
+            
+            
+            // uint32 use_time;
+            // pit_time_start(pit1);
             //image_threshold = OtsuThreshold(image[0],COL,ROW);  //大津法计算阈值    //60*80图像计算时间为907us
-            //use_time = pit_time_get(pit1)/bus_clk_mhz;          //计算大津法程序消耗时间，单位微秒。
-            //pit_close(pit1);
-            //printf("use_time = %dus\n",  use_time);           
-            
-            //发送二值化图像至上位机
-            /*
-            p = image[0];
-            uart_putchar(uart2,0x00);uart_putchar(uart2,0xff);uart_putchar(uart2,0x01);uart_putchar(uart2,0x01);//发送命令
-            for(i=0; i<COL*ROW; i++)
-            {
-                if(p[i]>image_threshold)    uart_putchar(uart2,0xff);
-                else                        uart_putchar(uart2,0x00);
-            }
-            */
-
-            //seekfree_sendimg_032();                             //发送灰度至上位机
-            //systick_delay_ms(50);
-
-
-            //dui 数据进行抽点然后在显示
-            /*
-            for(int num=0; num<ROW; num++)
-            {
-                memcpy(dis_image[num],&image[num][0],COL);
-            }
-            dis_bmp(64,128,dis_image[0],image_threshold);
-            */
-            //dis_bmp(60,,image[0],image_threshold);
-            //systick_delay_ms(400);
-            
+            // use_time = pit_time_get(pit1)/bus_clk_mhz;          //计算大津法程序消耗时间，单位微秒。
+            // pit_close(pit1);
+            // printf("use_time = %dus\n",  use_time);                      
         }
         
     }

@@ -60,6 +60,8 @@ uchar Cross_Flag_Count = 0;//用来记录是第几次扫描到十字了
  uchar Rotary_Island_Count0 = 0;
  uchar Rotary_Island_Count1 = 0;
  uchar Rotary_Island_Count2 = 0;
+ uchar Big = 5;
+ uchar Small = 20;
 /***************环岛相关变量结束*****************/
 
 void Annulus_Control(void)
@@ -97,10 +99,6 @@ void Image_Para_Init(void)
 	
 	Annulus_Left = 0;	// 置位左环路
 	Annulus_Right = 0; 
-}
-for(i = 59;i >= 15;)
-{
-	Left_Line[i]
 }
 
 
@@ -359,9 +357,9 @@ void Image_Handle(uchar *data)
 			if(Rotary_Island_Count0 > 10 && Rotary_Island_Right == 0)
 			{
 				Rotary_Island_Right++;
-				// gpio_init(BUZZER,GPO,1);	    //开蜂鸣器
-    		// systick_delay_ms(300);
-    		// gpio_set(BUZZER,0);            //关蜂鸣器   
+				gpio_init(BUZZER,GPO,1);	    //开蜂鸣器
+    		systick_delay_ms(300);
+    		gpio_set(BUZZER,0);            //关蜂鸣器   
 	 		}	
 		}
 		if(Rotary_Island_Right == 1)
@@ -369,28 +367,40 @@ void Image_Handle(uchar *data)
 			if(Right_Add_Flag[59])
 			{
 				Rotary_Island_Right++;
-				// gpio_init(BUZZER,GPO,1);	    //开蜂鸣器
-    		// systick_delay_ms(300);
-    		// gpio_set(BUZZER,0);            //关蜂鸣器   
+				gpio_init(BUZZER,GPO,1);	    //开蜂鸣器
+    		systick_delay_ms(300);
+    		gpio_set(BUZZER,0);            //关蜂鸣器   
 
 			}
 		}
-		if(Rotary_Island_Right == 2)
+	}
+if(Rotary_Island_Right == 2)
+{
+	for(uchar i = 20;i <= 159;)
+	{
+		i+=1;
+		if((data[Big*160 + i] && !data[Big*160 + i+1] && !data[Big*160 + i+2] && data[Big*160 + i+3])
+		|| (data[Big*160 + i] && !data[Big*160 + i+1] && !data[Big*160 + i+2] && !data[Big*160 + i+3] && data[Big*160 + i+4])  
+		|| (data[Big*160 + i] && !data[Big*160 + i+1] && !data[Big*160 + i+2] && !data[Big*160 + i+3] && !data[Big*160 + i+4] && data[Big*160 + i+5]))
 		{
-			if(!data[55*160 + 153] && !data[57*160 + 153] && !data[59*160 + 153])
-			{
-				Rotary_Island_Right++;
-				// gpio_init(BUZZER,GPO,1);	    //开蜂鸣器
-    		// systick_delay_ms(300);
-    		// gpio_set(BUZZER,0);            //关蜂鸣器 
-			}
+			Rotary_Island_Count1++;
+		}
+		if(Rotary_Island_Count1 >= 3)
+		{
+			Rotary_Island_Right++;
+			gpio_init(BUZZER,GPO,1);	    //开蜂鸣器
+    	systick_delay_ms(300);
+    	gpio_set(BUZZER,0);            //关蜂鸣器 
 		}
 	}
+}
+	Rotary_Island_Count0 = 0;
+	Rotary_Island_Count1 = 0;
 	/**************************十字和环岛检测结束***************************************/
 
 
 	/*************************** 第二轮补线修复开始 ***************************/
-	if (!Cross_Flag && !Rotary_Island_Right_Flag)	// 不是环岛而且不是十字
+	if (!Cross_Flag)	// 不是环岛而且不是十字
 	{
 		if (Left_Add_Start)		// 左边界需要补线
 		{
@@ -423,7 +433,7 @@ void Image_Handle(uchar *data)
 	{
 		for(int i = 59;i >= 15;)
 		{
-			Right_Add_Line[i] = Left_Add_Line[i] + 128 + i - 59;
+			Right_Add_Line[i] = Left_Add_Line[i] + 110 + i - 59;
 			i -= 2;
 		}
 	}
@@ -431,7 +441,7 @@ void Image_Handle(uchar *data)
 	{
 		for(uchar i = 59;i >= 15;)
 		{
-			Left_Add_Line[i] = Right_Add_Line[i] - 80 + 59 - i;
+			Left_Add_Line[i] = Right_Add_Line[i] - 80 + 59 - i - 60;
 			i -= 2;
 			Rotary_Island_Right == 0;
 		}
@@ -1907,7 +1917,7 @@ void Handle_Gray(void)
 	image_threshold = OtsuThreshold(image[0],COL,ROW);
     //uart_putchar(uart2,0x00);uart_putchar(uart2,0xff);uart_putchar(uart2,0x01);uart_putchar(uart2,0x01);//发送命令
 	
-    for(int i = 14; i < ROW; i++)
+    for(int i = 0; i < ROW; i++)
     {
 		for(int j = 0;j < COL;j++)
 		{

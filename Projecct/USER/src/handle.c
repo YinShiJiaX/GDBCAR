@@ -336,6 +336,7 @@ void Image_Handle(uchar *data)
 
 
 	/**************************十字和环岛检测*****************************************/
+	
 	for(uchar i = 15;i < 59;)
 	{
 		i += 2;
@@ -374,24 +375,16 @@ void Image_Handle(uchar *data)
 			}
 		}
 	}
+	
 if(Rotary_Island_Right == 2)
 {
-	for(uchar i = 20;i <= 159;)
-	{
-		i+=1;
-		if((data[Big*160 + i] && !data[Big*160 + i+1] && !data[Big*160 + i+2] && data[Big*160 + i+3])
-		|| (data[Big*160 + i] && !data[Big*160 + i+1] && !data[Big*160 + i+2] && !data[Big*160 + i+3] && data[Big*160 + i+4])  
-		|| (data[Big*160 + i] && !data[Big*160 + i+1] && !data[Big*160 + i+2] && !data[Big*160 + i+3] && !data[Big*160 + i+4] && data[Big*160 + i+5]))
-		{
-			Rotary_Island_Count1++;
-		}
-		if(Rotary_Island_Count1 >= 3)
-		{
-			Rotary_Island_Right++;
-			gpio_init(BUZZER,GPO,1);	    //开蜂鸣器
-    	systick_delay_ms(300);
-    	gpio_set(BUZZER,0);            //关蜂鸣器 
-		}
+	int a;
+	a = Only_Travel_Right_Line(data);
+	if(a){
+				Rotary_Island_Right++;
+				gpio_init(BUZZER,GPO,1);	    //开蜂鸣器
+    		systick_delay_ms(300);
+    		gpio_set(BUZZER,0);            //关蜂鸣器 
 	}
 }
 	Rotary_Island_Count0 = 0;
@@ -797,6 +790,7 @@ uchar Corrode_Filter(uchar i, uchar *data, uchar Left_Min, uchar Right_Max)
 													}
 													else if (j+10 <= Right_Max)
 													{
+														/*
 														data[i*160 + j] = 255;	// 仅有连续10个黑点，滤除掉
 														data[i*160+j+1] = 255;	// 仅有连续10个黑点，滤除掉
 														data[i*160+j+2] = 255;	// 仅有连续10个黑点，滤除掉
@@ -808,7 +802,9 @@ uchar Corrode_Filter(uchar i, uchar *data, uchar Left_Min, uchar Right_Max)
 														data[i*160+j+8] = 255;	// 仅有连续10个黑点，滤除掉
 														data[i*160+j+9] = 255;	// 仅有连续10个黑点，滤除掉
 														
+														*/
 														j += 10;
+														
 													}
 													else
 													{
@@ -817,6 +813,7 @@ uchar Corrode_Filter(uchar i, uchar *data, uchar Left_Min, uchar Right_Max)
 												}
 												else if (j+9 <= Right_Max)
 												{
+													/*
 													data[i*160 + j] = 255;	// 仅有连续九个黑点，滤除掉
 													data[i*160+j+1] = 255;	// 仅有连续九个黑点，滤除掉
 													data[i*160+j+2] = 255;	// 仅有连续九个黑点，滤除掉
@@ -826,7 +823,7 @@ uchar Corrode_Filter(uchar i, uchar *data, uchar Left_Min, uchar Right_Max)
 													data[i*160+j+6] = 255;	// 仅有连续九个黑点，滤除掉
 													data[i*160+j+7] = 255;	// 仅有连续九个黑点，滤除掉
 													data[i*160+j+8] = 255;	// 仅有连续九个黑点，滤除掉
-													
+													*/
 													j += 9;
 												}
 												else
@@ -836,6 +833,7 @@ uchar Corrode_Filter(uchar i, uchar *data, uchar Left_Min, uchar Right_Max)
 											}
 											else if (j+8 <= Right_Max)
 											{
+												/*
 												data[i*160 + j] = 255;	// 仅有连续八个黑点，滤除掉
 												data[i*160+j+1] = 255;	// 仅有连续八个黑点，滤除掉
 												data[i*160+j+2] = 255;	// 仅有连续八个黑点，滤除掉
@@ -844,7 +842,7 @@ uchar Corrode_Filter(uchar i, uchar *data, uchar Left_Min, uchar Right_Max)
 												data[i*160+j+5] = 255;	// 仅有连续八个黑点，滤除掉
 												data[i*160+j+6] = 255;	// 仅有连续八个黑点，滤除掉
 												data[i*160+j+7] = 255;	// 仅有连续八个黑点，滤除掉
-												
+												*/
 												j += 8;
 											}	
 											else
@@ -854,6 +852,7 @@ uchar Corrode_Filter(uchar i, uchar *data, uchar Left_Min, uchar Right_Max)
 										}
 										else if (j+7 <= Right_Max)
 										{
+											/*
 											data[i*160 + j] = 255;	// 仅有连续七个黑点，滤除掉
 											data[i*160+j+1] = 255;	// 仅有连续七个黑点，滤除掉
 											data[i*160+j+2] = 255;	// 仅有连续七个黑点，滤除掉
@@ -861,7 +860,7 @@ uchar Corrode_Filter(uchar i, uchar *data, uchar Left_Min, uchar Right_Max)
 											data[i*160+j+4] = 255;	// 仅有连续七个黑点，滤除掉
 											data[i*160+j+5] = 255;	// 仅有连续七个黑点，滤除掉
 											data[i*160+j+6] = 255;	// 仅有连续七个黑点，滤除掉										
-											
+											*/
 											j += 7;
 										}	
 										else
@@ -871,13 +870,14 @@ uchar Corrode_Filter(uchar i, uchar *data, uchar Left_Min, uchar Right_Max)
 									}
 									else if (j+6 <= Right_Max)
 									{
+										/*
 										data[i*160 + j] = 255;	// 仅有连续六个黑点，滤除掉
 										data[i*160+j+1] = 255;	// 仅有连续六个黑点，滤除掉
 										data[i*160+j+2] = 255;	// 仅有连续六个黑点，滤除掉
 										data[i*160+j+3] = 255;	// 仅有连续六个黑点，滤除掉
 										data[i*160+j+4] = 255;	// 仅有连续六个黑点，滤除掉
 										data[i*160+j+5] = 255;	// 仅有连续六个黑点，滤除掉
-										
+										*/
 										j += 6;
 									}	
 									else
@@ -887,12 +887,13 @@ uchar Corrode_Filter(uchar i, uchar *data, uchar Left_Min, uchar Right_Max)
 								}
 								else if (j+5 <= Right_Max)
 								{
+									/*
 									data[i*160 + j] = 255;	// 仅有连续五个黑点，滤除掉
 									data[i*160+j+1] = 255;	// 仅有连续五个黑点，滤除掉
 									data[i*160+j+2] = 255;	// 仅有连续五个黑点，滤除掉
 									data[i*160+j+3] = 255;	// 仅有连续五个黑点，滤除掉
 									data[i*160+j+4] = 255;	// 仅有连续五个黑点，滤除掉									
-									
+									*/
 									j += 5;
 								}	
 								else
@@ -1913,24 +1914,112 @@ uint8 OtsuThreshold( uint8 *image, uint16 col, uint16 row)
 */
 void Handle_Gray(void)
 {
+	uchar *Image_Process = image[0];
 	uchar image_threshold;
-	image_threshold = OtsuThreshold(image[0],COL,ROW);
-    //uart_putchar(uart2,0x00);uart_putchar(uart2,0xff);uart_putchar(uart2,0x01);uart_putchar(uart2,0x01);//发送命令
 	
-    for(int i = 0; i < ROW; i++)
-    {
-		for(int j = 0;j < COL;j++)
+	image_threshold = OtsuThreshold(image[0],COL,ROW);
+	
+	for(int i = 0; i < ROW*COL; i++)
+	{
+		if (*Image_Process > image_threshold) 
 		{
-			if(image[i][j] > image_threshold)  
-			{
-				//uart_putchar(uart2,0xff);
-				image[i][j] = 255;
-			}
-        	else
-			{
-				//uart_putchar(uart2,0x00);
-				image[i][j] = 0;
+			*Image_Process = 255;
+		}
+		else
+		{
+			*Image_Process = 0;
+		}
+		Image_Process++;
+	}
+	
+}
+
+/*
+ *
+ * 求两点之间距离
+ * 
+*/
+double distance(double x1, double y1, double x2, double y2)
+{
+	double distance;//两点间距离
+	double x, y;
+	x= x1 - x2;
+	y= y1 - y2;
+	distance = sqrt(x*x + y*y);
+	return distance;
+}
+
+/*
+ *
+ * 判断三点是否在一条直线上 ，共线返回1
+*/
+int collinear(double x1, double y1, double x2, double y2, double x3, double y3)
+{
+ 	double k1,k2;
+ 	double kx1,ky1,kx2,ky2;
+ 	if(x1==x2 && x2==x3) return 1;//三点横坐标都相等，共线
+ 	else
+	{
+		kx1=x2 - x1;
+		kx2=x2 - x3;
+		ky1=y2 - y1;
+		ky2=y2 - y3;
+		k1=ky1/kx1;
+		k2=ky2/kx2;
+		if(k1==k2) return 1;//AB与BC斜率相等，共线
+		else return 0;//不共线
+	}
+}
+
+
+/*
+ *
+ * 计算曲率
+*/
+double curvature(double x1, double y1, double x2, double y2, double x3, double y3)
+{
+	double curvature;//求得的曲率
+	if(collinear(x1, y1, x2, y2, x3, y3)==1)//判断三点是否共线
+	{
+		curvature = 0.0;//三点共线时将曲率设为某个值，0
+	}
+	else
+	{
+		double radius;//曲率半径
+		double dis,dis1,dis2,dis3;//距离
+		double sinA;//ab确定的边所对应的角A的sin值
+		dis1 = distance(x1, y1, x2, y2);
+		dis2 = distance(x2, y2, x3, y3);
+		dis3 = distance(x1, y1, x3, y3);
+		dis = dis2*dis2+dis3*dis3-dis1*dis1;
+		sinA = dis/(2*dis2*dis3);//余弦定理
+		radius = 0.5*dis1/sinA;
+		curvature = 1/radius;
+	}
+	return curvature;
+}
+
+/*
+ *
+ * 用于判断环岛的拐点是否到达图像的右侧中间附近
+*/
+
+int Only_Travel_Right_Line(uchar *data){
+	uchar Line[60];
+	
+	for(uchar i = 34; i >= 25;i--){
+		Line[i] =  159;
+		for(uchar j = 159; j >= 80;j--){
+			if(data[160*i + j] ){
+				Line[i] = j;
+				break;
 			}
 		}
-    }
+	}
+	if(Line[25] > Line[34]){
+		return 1;
+	}
+	else{
+		return 0;
+	}
 }

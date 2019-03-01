@@ -43,7 +43,9 @@ uchar *Left_Line, uchar *Right_Line, uchar *Left_Add_Line, uchar *Right_Add_Line
 void Line_Repair(uchar Start, uchar Stop, uchar *data, uchar *Line, uchar *Line_Add, uchar *Add_Flag, uchar Mode);
 void Mid_Line_Repair(uchar count, uchar *data);
 void Handle_Gray(void);
-int Only_Travel_Right_Line(uchar *data);
+int Travel_Turn_Point_For_Island(uchar *data,int Side_Of_Island, int Size_Of_Island);
+int Travel_Repair_Point_For_Island(uchar *data,int Side_Of_Island, int Size_Of_Island);
+void Repair_For_In_Island(uchar *data,int Side_Of_Island, int Size_Of_Island);
 
 float Calculate_Angle(uchar Point_1, uchar Point_2, uchar Point_3);
 void Curve_Fitting(float *Ka, float *Kb, uchar *Start, uchar *Line, uchar *Add_Flag, uchar Mode);

@@ -53,8 +53,7 @@ uchar Cross_Flag_Count = 0;//用来记录是第几次扫描到十字了
 /***************环岛相关变量*****************/
  uchar Rotary_Island_Left = 0;
  uchar Rotary_Island_Right = 0;//用来判断环岛进出状态
- uchar Rotary_Island_End_Point = 0;//用来寻找补线终点
- uchar Rotary_Island_Start_Point = 0;//用来寻找补线起点
+ uchar Rotary_Island_Repair_Point[2];//补线点
  uchar Rotary_Island_Left_Flag = 0;
  uchar Rotary_Island_Right_Flag = 0;//准备进入环岛标志位
  uchar Rotary_Island_Count0 = 0;
@@ -358,9 +357,9 @@ void Image_Handle(uchar *data)
 			if(Rotary_Island_Count0 > 10 && Rotary_Island_Right == 0)
 			{
 				Rotary_Island_Right++;
-				gpio_init(BUZZER,GPO,1);	    //开蜂鸣器
-    		systick_delay_ms(300);
-    		gpio_set(BUZZER,0);            //关蜂鸣器   
+				// gpio_init(BUZZER,GPO,1);	    //开蜂鸣器
+    		// systick_delay_ms(300);
+    		// gpio_set(BUZZER,0);            //关蜂鸣器   
 	 		}	
 		}
 		if(Rotary_Island_Right == 1)
@@ -368,9 +367,9 @@ void Image_Handle(uchar *data)
 			if(Right_Add_Flag[59])
 			{
 				Rotary_Island_Right++;
-				gpio_init(BUZZER,GPO,1);	    //开蜂鸣器
-    		systick_delay_ms(300);
-    		gpio_set(BUZZER,0);            //关蜂鸣器   
+				// gpio_init(BUZZER,GPO,1);	    //开蜂鸣器
+    		// systick_delay_ms(300);
+    		// gpio_set(BUZZER,0);            //关蜂鸣器   
 
 			}
 		}
@@ -378,17 +377,26 @@ void Image_Handle(uchar *data)
 	
 if(Rotary_Island_Right == 2)
 {
-	int a;
-	a = Only_Travel_Right_Line(data);
-	if(a){
-				Rotary_Island_Right++;
-				gpio_init(BUZZER,GPO,1);	    //开蜂鸣器
-    		systick_delay_ms(300);
-    		gpio_set(BUZZER,0);            //关蜂鸣器 
+	if(Travel_Turn_Point_For_Island(data, 0, 1))
+	{
+		Rotary_Island_Right++;
+		// gpio_init(BUZZER,GPO,1);	    //开蜂鸣器
+    // systick_delay_ms(300);
+    // gpio_set(BUZZER,0);            //关蜂鸣器 
 	}
 }
-	Rotary_Island_Count0 = 0;
-	Rotary_Island_Count1 = 0;
+if(Rotary_Island_Right == 3)
+{
+	if(Travel_Repair_Point_For_Island(data, 0, 1))
+	{
+		Rotary_Island_Right++;
+		// gpio_init(BUZZER,GPO,1);	    //开蜂鸣器
+    // systick_delay_ms(300);
+    // gpio_set(BUZZER,0);            //关蜂鸣器
+	}
+}
+Rotary_Island_Count0 = 0;
+Rotary_Island_Count1 = 0;
 	/**************************十字和环岛检测结束***************************************/
 
 
@@ -430,14 +438,18 @@ if(Rotary_Island_Right == 2)
 			i -= 2;
 		}
 	}
-	if(Rotary_Island_Right == 3)
-	{
-		for(uchar i = 59;i >= 15;)
+	if(Rotary_Island_Right == 4)
+	{	
+			
+		if(Travel_Repair_Point_For_Island(data, 0, 1))
 		{
-			Left_Add_Line[i] = Right_Add_Line[i] - 80 + 59 - i - 60;
-			i -= 2;
-			Rotary_Island_Right == 0;
+			Repair_For_In_Island(data,0, 1);
 		}
+		else
+		{
+			//Rotary_Island_Right++;
+		}
+		
 	}
 	
 	
@@ -903,10 +915,12 @@ uchar Corrode_Filter(uchar i, uchar *data, uchar Left_Min, uchar Right_Max)
 							}
 							else if (j+4 <= Right_Max)
 							{
+								/*
 								data[i*160 + j] = 255;	// 仅有连续四个黑点，滤除掉
 								data[i*160+j+1] = 255;	// 仅有连续四个黑点，滤除掉
 								data[i*160+j+2] = 255;	// 仅有连续四个黑点，滤除掉
 								data[i*160+j+3] = 255;	// 仅有连续四个黑点，滤除掉
+								*/
 								
 								j += 4;
 							}	
@@ -917,9 +931,11 @@ uchar Corrode_Filter(uchar i, uchar *data, uchar Left_Min, uchar Right_Max)
 						}
 						else if (j+3 <= Right_Max)
 						{
+							/*
 							data[i*160 + j] = 255;	// 仅有连续三个黑点，滤除掉
 							data[i*160+j+1] = 255;	// 仅有连续三个黑点，滤除掉
 							data[i*160+j+2] = 255;	// 仅有连续三个黑点，滤除掉
+							*/
 							
 							j += 3;
 						}	
@@ -2002,24 +2018,118 @@ double curvature(double x1, double y1, double x2, double y2, double x3, double y
 /*
  *
  * 用于判断环岛的拐点是否到达图像的右侧中间附近
+ * Side_Of_Island 为 1 代表左圆环，为 0 代表右圆环
+ * Size_Of_Island 为 1 代表小圆环，为 0 代表大圆环
 */
 
-int Only_Travel_Right_Line(uchar *data){
+int Travel_Turn_Point_For_Island(uchar *data,int Side_Of_Island, int Size_Of_Island){
 	uchar Line[60];
 	
-	for(uchar i = 34; i >= 25;i--){
-		Line[i] =  159;
-		for(uchar j = 159; j >= 80;j--){
-			if(data[160*i + j] ){
-				Line[i] = j;
-				break;
+	if(Side_Of_Island == 0)
+	{
+		if(Size_Of_Island == 1)
+		{
+			for(uchar i = 34; i >= 25;i--)
+			{
+				Line[i] =  159;
+				for(uchar j = 159; j >= 80;j--)
+				{
+					if(data[160*i + j] )
+					{
+						Line[i] = j;
+						break;
+					}
+				}
+			}
+			if(Line[25] > Line[34])
+			{
+				return 1;
+			}
+			else
+			{
+				return 0;
 			}
 		}
 	}
-	if(Line[25] > Line[34]){
-		return 1;
+	else
+	{
+		/* code */
+	}	
+}
+
+/*
+ *
+ * 用于寻找补线点
+ * Side_Of_Island 为 1 代表左圆环，为 0 代表右圆环
+ * Size_Of_Island 为 1 代表小圆环，为 0 代表大圆环
+*/
+int Travel_Repair_Point_For_Island(uchar *data,int Side_Of_Island, int Size_Of_Island)
+{
+	uchar count = 0;
+	if(Side_Of_Island == 0)
+	{
+		if(Size_Of_Island == 1)
+		{
+			for(uchar  i = 50; i >= 6; i--)
+			{
+				for(uchar j = 1;j <= 100;j++)
+				{
+					if((!data[i*160 + j] && !data[i*160 + j + 1] && data[i*160 + j + 2] && data[i*160 + j + 3]) 
+					|| (data[i*160 + j] && data[i*160 + j + 1] && !data[i*160 + j + 2] && !data[i*160 + j + 3]))
+					{
+						count++;
+					}
+					if(count >= 3)
+					{
+						Rotary_Island_Repair_Point[0] = i;
+						Rotary_Island_Repair_Point[1] = j;
+						return 1;
+					}
+				}
+				count = 0;
+			}
+		}
+		else
+		{
+			/* code */
+		}
+		
 	}
-	else{
-		return 0;
+	else
+	{
+		/* code */
 	}
+	return 0;
+}
+
+/*
+ *
+ * 用于进入圆环补线
+ * Side_Of_Island 为 1 代表左圆环，为 0 代表右圆环
+ * Size_Of_Island 为 1 代表小圆环，为 0 代表大圆环
+*/
+void Repair_For_In_Island(uchar *data,int Side_Of_Island, int Size_Of_Island)
+{
+	float k;
+	k = ((float)Rotary_Island_Repair_Point[0] - 59)/((float)Rotary_Island_Repair_Point[1] - 5);
+	if (Side_Of_Island == 0) 
+	{
+		if(Size_Of_Island == 1)
+		{
+			for(uchar i = 59; i >= Rotary_Island_Repair_Point[0]; )
+			{
+				i-=2;
+				Left_Add_Line[i] = (uchar)((i - 59)/k + 5);
+			}
+
+		}
+	}
+	else
+	{
+		/* code */
+	}
+	
+	
+	
+
 }

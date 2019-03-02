@@ -46,6 +46,7 @@ void Handle_Gray(void);
 int Travel_Turn_Point_For_Island(uchar *data,int Side_Of_Island, int Size_Of_Island);
 int Travel_Repair_Point_For_Island(uchar *data,int Side_Of_Island, int Size_Of_Island);
 void Repair_For_In_Island(uchar *data,int Side_Of_Island, int Size_Of_Island);
+int Travel_Out_Point_For_Island(uchar *data,int Side_Of_Island, int Size_Of_Island);
 
 float Calculate_Angle(uchar Point_1, uchar Point_2, uchar Point_3);
 void Curve_Fitting(float *Ka, float *Kb, uchar *Start, uchar *Line, uchar *Add_Flag, uchar Mode);

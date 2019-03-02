@@ -60,6 +60,13 @@ int main(void)
 
             Handle_Gray();                                     /**处理图像并进行二值化**/
 
+            for(int num=0; num<64; num++)
+            {
+                memcpy(dis_image[num],&image[num][16],128);
+            }
+            dis_bmp(60,128,dis_image[0],70);
+            
+
             Image_Handle(image[0]);                            /****处理图像，取中线***/
 
             Current_Point = Point_Average();                   /*******加权平均*******/
@@ -70,13 +77,6 @@ int main(void)
             
             ftm_pwm_duty(STEER_FTM, STEER_CH, Steer_Duty);     /****改变舵机占空比****/
 
- 
-            
-            for(int num=0; num<64; num++)
-            {
-                memcpy(dis_image[num],&image[num][16],128);
-            }
-            dis_bmp(60,128,dis_image[0],70);
             
             
             // uint32 use_time;

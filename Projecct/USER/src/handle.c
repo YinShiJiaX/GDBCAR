@@ -335,7 +335,7 @@ void Image_Handle(uchar *data)
 			}
 		}
 
-		/*第一轮右环岛检测*/
+		/*第一轮右环岛检测, 左边为直道，右边需要补线*/
 		if((Left_Line[31] <= (Left_Line[51] + 20)) && 
 				(Left_Line[31] >= (Left_Line[51] + 10)) && 
 				!Left_Add_Flag[i] && Right_Add_Flag[i])
@@ -356,7 +356,7 @@ void Image_Handle(uchar *data)
 	Rotary_Island_Count0 = 0;
 	/**************************十字和第一轮环岛检测结束***************************************/
 
-	/*第二轮右环岛检测*/
+	/*第二轮右环岛检测，底行右边需要补线*/
 	if(Rotary_Island_Right == 1)
 	{
 		if(Right_Add_Flag[59])
@@ -369,7 +369,7 @@ void Image_Handle(uchar *data)
 
 	/*******************************************/
 
-	/*第三轮右环岛检测*/
+	/*第三轮右环岛检测，找到右边的环岛拐点*/
 	if(Rotary_Island_Right == 2)
 	{
 		if(Travel_Turn_Point_For_Island(data, 0, 1))
@@ -387,15 +387,12 @@ void Image_Handle(uchar *data)
 
 	/*******************************************/
 
-	/*第四轮右环岛检测*/
+	/*第四轮右环岛检测， 找到远处的补线点*/
 	if(Rotary_Island_Right == 3)
 	{
 		if(Travel_Repair_Point_For_Island(data, 0, 1))
 		{
 			Rotary_Island_Right++;
-		// gpio_init(BUZZER,GPO,1);	    //开蜂鸣器
-    // systick_delay_ms(300);
-    // gpio_set(BUZZER,0);            //关蜂鸣器
 		}
 	}
 
@@ -404,9 +401,13 @@ void Image_Handle(uchar *data)
 
 	/*******************************************/
 
-	/*第五轮右环岛检测*/
+	/*第五轮右环岛检测，由于小车进入环岛经历过渡带，左边界消失*/
 	if(Rotary_Island_Right == 4)
 	{
+		if(Left_Add_Flag[59])
+		{
+			Rotary_Island_Right++;
+		}
 
 	}
 
@@ -415,6 +416,80 @@ void Image_Handle(uchar *data)
 
 	/*******************************************/
 
+	/*第六轮右环岛检测，由于完全进入环岛，左边界重现*/
+	if(Rotary_Island_Right == 5)
+	{
+		if(!data[160*58 + 10])
+		{
+			Rotary_Island_Right++;
+		}
+
+	}
+
+	/*第六轮左环岛检测*/
+	/*******************************************/
+
+	/*******************************************/
+
+
+		/*第七轮右环岛检测，出环岛，发现图像中间左右出现缺口*/
+	if(Rotary_Island_Right == 6)
+	{
+		if(Left_Add_Flag[25])
+		{
+			Rotary_Island_Right++;
+		}
+
+	}
+
+	/*第七轮左环岛检测*/
+	/*******************************************/
+
+	/*******************************************/
+
+	/*第八轮右环岛检测，左边界底部消失*/
+	if(Rotary_Island_Right == 7)
+	{
+		if(Left_Add_Flag[59] && Left_Add_Flag[57] && Left_Add_Flag[55]&& Left_Add_Flag[53]&& Left_Add_Flag[51])
+		{
+			Rotary_Island_Right++;
+		}
+
+	}
+
+	/*第八轮左环岛检测*/
+	/*******************************************/
+
+	/*******************************************/
+	/*第九轮右环岛检测， 左边界重现*/
+	if(Rotary_Island_Right == 8)
+	{
+		if(!Left_Add_Flag[58] && !Left_Add_Flag[57] && !Left_Add_Flag[55]&& !Left_Add_Flag[53]&& !Left_Add_Flag[51])
+		{
+			Rotary_Island_Right++;
+		}
+
+	}
+
+	/*第九轮左环岛检测*/
+	/*******************************************/
+
+	/*******************************************/
+
+	/*第十轮右环岛检测， 发现最后出环标志，之后就正常跑*/
+	if(Rotary_Island_Right == 9)
+	{
+		if(!Right_Add_Flag[59] && !Right_Add_Flag[57] && !Right_Add_Flag[55]&& !Right_Add_Flag[53]&& !Right_Add_Flag[51])
+		{
+			Rotary_Island_Right++;
+		}
+
+	}
+
+	/*第十轮左环岛检测*/
+	/*******************************************/
+
+	/*******************************************/
 
 	/*************************** 第二轮补线修复开始 ***************************/
 	if (!Cross_Flag)	// 不是环岛而且不是十字
@@ -449,12 +524,30 @@ void Image_Handle(uchar *data)
 			i -= 2;
 		}
 	}
-	if(Rotary_Island_Right == 4)
+	if(Rotary_Island_Right == 4 || Rotary_Island_Right == 5)
 	{				
 		if(Travel_Repair_Point_For_Island(data, 0, 1))
 		{
-			Repair_For_In_Island(data,0, 1);
+			Repair_For_In_Island(0, 1);
 		}		
+	}
+	if(Rotary_Island_Right == 7 || Rotary_Island_Right == 8)
+	{
+		Repair_For_Out_Island(0, 1);
+
+	}
+	if(Rotary_Island_Right == 9)
+	{
+		for(int i = 59;i >= 15;)
+		{
+			Right_Add_Line[i] = Left_Add_Line[i] + 110 + i - 59;
+			i -= 2;
+		}
+
+	}
+	if(Rotary_Island_Right == 10)
+	{
+		Rotary_Island_Right = 0;
 	}
 	
 	
@@ -2078,8 +2171,8 @@ int Travel_Repair_Point_For_Island(uchar *data,int Side_Of_Island, int Size_Of_I
 		{
 			for(uchar  i = 55; i >= 7;)
 			{
-				i-=2;
-				for(uchar j = 1;j <= 100;j++)
+				i-=3;
+				for(uchar j = 1;j <= 120;j++)
 				{
 					if((!data[i*160 + j] && !data[i*160 + j + 1] && data[i*160 + j + 2] && data[i*160 + j + 3]) 
 					|| (data[i*160 + j] && data[i*160 + j + 1] && !data[i*160 + j + 2] && !data[i*160 + j + 3]))
@@ -2115,11 +2208,11 @@ int Travel_Repair_Point_For_Island(uchar *data,int Side_Of_Island, int Size_Of_I
  * Side_Of_Island 为 1 代表左圆环，为 0 代表右圆环
  * Size_Of_Island 为 1 代表小圆环，为 0 代表大圆环
 */
-void Repair_For_In_Island(uchar *data,int Side_Of_Island, int Size_Of_Island)
+void Repair_For_In_Island(int Side_Of_Island, int Size_Of_Island)
 {
 	float k;
 	k = ((float)Rotary_Island_Repair_Point[0] - 59)/((float)Rotary_Island_Repair_Point[1] - 5);
-	if (Side_Of_Island == 0) 
+	if(Side_Of_Island == 0) 
 	{
 		if(Size_Of_Island == 1)
 		{
@@ -2137,22 +2230,31 @@ void Repair_For_In_Island(uchar *data,int Side_Of_Island, int Size_Of_Island)
 	}
 }
 
+
 /*
  *
  * 用于出环岛补线
  * Side_Of_Island 为 1 代表左圆环，为 0 代表右圆环
  * Size_Of_Island 为 1 代表小圆环，为 0 代表大圆环
 */
-int Travel_Out_Point_For_Island(uchar *data,int Side_Of_Island, int Size_Of_Island)
+void Repair_For_Out_Island(int Side_Of_Island, int Size_Of_Island)
 {
-	if (Side_Of_Island == 0) 
+	if(Side_Of_Island == 0) 
 	{
-		if (Size_Of_Island == 1) 
+		if(Size_Of_Island == 1)
 		{
-			
+			for(uchar i = 59; i >= 15;)
+			{
+				Left_Add_Line[i] = 30;
+				Right_Add_Line[i] = 159;
+				i-=2;
+			}
 		}
-		
 	}
-	
-	
+	else
+	{
+		/* code */
+	}
+
 }
+

@@ -45,7 +45,8 @@ void Mid_Line_Repair(uchar count, uchar *data);
 void Handle_Gray(void);
 int Travel_Turn_Point_For_Island(uchar *data,int Side_Of_Island, int Size_Of_Island);
 int Travel_Repair_Point_For_Island(uchar *data,int Side_Of_Island, int Size_Of_Island);
-void Repair_For_In_Island(uchar *data,int Side_Of_Island, int Size_Of_Island);
+void Repair_For_In_Island(int Side_Of_Island, int Size_Of_Island);
+void Repair_For_Out_Island(int Side_Of_Island, int Size_Of_Island);
 int Travel_Out_Point_For_Island(uchar *data,int Side_Of_Island, int Size_Of_Island);
 
 float Calculate_Angle(uchar Point_1, uchar Point_2, uchar Point_3);
@@ -57,6 +58,7 @@ char Error_Transform(uchar Data, uchar Set);
 double curvature(double x1, double y1, double x2, double y2, double x3, double y3);
 int collinear(double x1, double y1, double x2, double y2, double x3, double y3);
 double distance(double x1, double y1, double x2, double y2);
+
 
 void img_extract(uint8 *dst, uint8 *src, uint32 srclen);        //Ω‚—π °Ã°Ã°Ã
 void img_recontract(uint8 *dst, uint8 *src, uint32 srclen);     //—πÀı°Ã°Ã°Ã

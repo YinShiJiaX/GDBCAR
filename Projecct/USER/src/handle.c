@@ -29,21 +29,10 @@ uchar Left_Add_Stop, Right_Add_Stop;	// 左右补线结束行坐标
 float Left_Ka = 0, Right_Ka = 0;
 float Left_Kb = 0, Right_Kb = 0;	// 最小二乘法参数
 
-uchar Left_Hazard_Flag, Right_Hazard_Flag;	// 左右障碍物标志
 uchar Left_Max, Right_Min;
 int32 Area_Left = 0, Area_Right = 0;	// 左右侧赛面积
 
 uchar Starting_Line_Flag = 0;	// 起跑线标志位
-
-/************** 环路相关变量 *************/
-uchar Annulus_Count[10] = {1, 1, 1, 1, 0, 0, 1, 0, 1, 0};	// 1左环路，0右环路
-uchar Annulus_Times = 0;	// 环路次数
-uchar Annulus_Flag = 0;
-uchar Annulus_Left = 0;
-uchar Annulus_Right = 0;
-int16 Annulus_Delay = 0;
-uchar Annulus_Mode = 0;		// 准备进环路状态
-/************** 环路相关变量 *************/
 
 /***************十字相关变量******************/
 uchar Cross_Flag = 0;
@@ -54,44 +43,17 @@ uchar Cross_Flag_Count = 0;//用来记录是第几次扫描到十字了
  uchar Rotary_Island_Left = 0;
  uchar Rotary_Island_Right = 0;//用来判断环岛进出状态
  uchar Rotary_Island_Repair_Point[2];//补线点
- uchar Rotary_Island_Left_Flag = 0;
- uchar Rotary_Island_Right_Flag = 0;//准备进入环岛标志位
  uchar Rotary_Island_Count0 = 0;
  uchar Rotary_Island_Count1 = 0;
  uchar Rotary_Island_Count2 = 0;
- uchar Big = 5;
- uchar Small = 20;
 /***************环岛相关变量结束*****************/
-
-/****************** 新算法 ******************/
-
-/*
-*	图像算法参数初始化
-*
-*	说明：仅影响第一行特殊处理
-*/
-void Image_Para_Init(void)
-{	
-	Mid_Line[61] = 80;
-	Left_Line[61] = 1;
-	Right_Line[61] = 159;
-	Left_Add_Line[61] = 1;
-	Right_Add_Line[61] = 159;
-	Width_Real[61] = 158;
-	Width_Add[61] = 158;
-	Right_Add_Flag[61] = 0;
-	Left_Add_Flag[61] = 0;
-	
-	Annulus_Left = 0;	// 置位左环路
-	Annulus_Right = 0; 
-}
 
 
 
 /*
 *	图像处理算法
 *
-*	说明：处理普通图像，包括十字、障碍
+*	说明：处理普通图像，包括十字
 */
 void Image_Handle(uchar *data)
 {
@@ -107,9 +69,6 @@ void Image_Handle(uchar *data)
 	Line_Count = 0;	// 赛道行数复位
 	Starting_Line_Flag = 0;	// 起跑线标志位复位
 	Cross_Flag = 0;//十字标志位复位
-	
-	Left_Hazard_Flag = 0;	// 复位左右障碍物标志位
-	Right_Hazard_Flag = 0;
 	
 	Left_Add_Start = 0;		// 复位补线起始行坐标
 	Right_Add_Start = 0;
@@ -343,7 +302,15 @@ void Image_Handle(uchar *data)
 			Rotary_Island_Count0++;
 			if(Rotary_Island_Count0 > 10 && Rotary_Island_Right == 0)
 			{
-				Rotary_Island_Right++;  
+				Rotary_Island_Right++;
+				for(uchar i = 59;i>=15;) 
+				{
+					i -= 2;
+					if(Left_Add_Flag[i] && Left_Add_Flag[i-2] && Left_Add_Flag[-4])
+					{
+						Rotary_Island_Right = 0;
+					}
+				}
 	 		}	
 		}
 
@@ -362,6 +329,9 @@ void Image_Handle(uchar *data)
 		if(Right_Add_Flag[59])
 		{
 			Rotary_Island_Right++;
+					gpio_init(BUZZER,GPO,1);	    //开蜂鸣器
+    systick_delay_ms(300);
+    gpio_set(BUZZER,0);            //关蜂鸣器 
 		}
 	}
 	/*第二轮左环岛检测*/	
@@ -548,6 +518,9 @@ void Image_Handle(uchar *data)
 	if(Rotary_Island_Right == 10)
 	{
 		Rotary_Island_Right = 0;
+				gpio_init(BUZZER,GPO,1);	    //开蜂鸣器
+    systick_delay_ms(300);
+    gpio_set(BUZZER,0);            //关蜂鸣器
 	}
 	
 	
@@ -645,24 +618,7 @@ int32 Point_Average(void)
 		
 		Point = Point*0.8 + Last_Point*0.2;	// 低通滤波
 		Point = Range_Protect(Point, 1, 159);		// 限幅，防止补偿溢出
-		
-		/*** 障碍物特殊情况处理 ***/
-		if (Left_Hazard_Flag)			//左侧有障碍物且需要补线，即使误判也不会造成影响
-		{
-			Point = Mid_Line[Left_Hazard_Flag];	//使用障碍物出现的那一行中点作为目标点
-//			if (Left_Hazard_Flag < 40)
-//			{
-//				Point += 5;
-//			}
-		}
-		else if (Right_Hazard_Flag)	//右测有障碍物且需要补线，即使误判也不会造成影响
-		{
-			Point = Mid_Line[Right_Hazard_Flag];//使用障碍物出现的那一行中点作为目标点
-//			if (Right_Hazard_Flag < 40)
-//			{
-//				Point -= 5;
-//			}
-		}
+    
 		Last_Point = Point;	// 更新上次目标点
 	}
 	
@@ -1067,10 +1023,6 @@ uchar Corrode_Filter(uchar i, uchar *data, uchar Left_Min, uchar Right_Max)
 			}
 		}
 	}
-//	if (White_Flag)
-//	{
-//		Jump_Count++;	// 视为一次跳变
-//	}
 	
 	return Jump_Count;	// 返回跳变点计数
 }
@@ -1469,7 +1421,7 @@ void Line_Repair(uchar Start, uchar Stop, uchar *data, uchar *Line, uchar *Line_
 	uchar Hazard_Width;
 	float Ka, Kb;
 	/****左补线，右边开始行小于左边停止行，有始有终，左边没有障碍物****/
-	if ((Mode == 1) && (Right_Add_Start <= Stop) && Stop && Start <= 53 && !Left_Hazard_Flag)	// 左边界补线
+	if ((Mode == 1) && (Right_Add_Start <= Stop) && Stop && Start <= 53)	// 左边界补线
 	{
 		for (i = Start+2; i >= Stop+2;)
 		{
@@ -1582,7 +1534,7 @@ void Line_Repair(uchar Start, uchar Stop, uchar *data, uchar *Line, uchar *Line_
 			}
 		}
 	}
-	if ((Mode == 2) && (Left_Add_Start <= Stop) && Stop && Start <= 53 && !Right_Hazard_Flag)	// 右边界补线
+	if ((Mode == 2) && (Left_Add_Start <= Stop) && Stop && Start <= 53)	// 右边界补线
 	{
 		for (i = Start+2; i >= Stop+2;)
 		{
@@ -1696,22 +1648,6 @@ void Line_Repair(uchar Start, uchar Stop, uchar *data, uchar *Line, uchar *Line_
 		}
 	}
 	
-	if (Mode == 1 && Left_Hazard_Flag)
-	{
-		for (i = Left_Hazard_Flag; i < 59; )
-		{
-			i += 2;
-			Line_Add[i] = Range_Protect((int32)Line_Add[i-2]-5, Line_Add[i], 159);
-		}
-	}
-	else if (Mode == 2 && Right_Hazard_Flag)
-	{
-		for (i = Right_Hazard_Flag; i < 59; )
-		{
-			i += 2;
-			Line_Add[i] = Range_Protect((int32)Line_Add[i-2]+5, 1, Line_Add[i]);
-		}
-	}
 }
 
 /*
@@ -1721,12 +1657,7 @@ void Line_Repair(uchar Start, uchar Stop, uchar *data, uchar *Line, uchar *Line_
 */
 void Mid_Line_Repair(uchar count, uchar *data)
 {
-	int res;
-	uchar i;	// 控制行
-	uchar Hazard_Width;
-	
-	
-	for (i = 61; i >= count+2;)
+	for (uchar i = 61; i >= count+2;)
 	{
 		i -= 2;
 		Mid_Line[i] = (Right_Add_Line[i] + Left_Add_Line[i]) / 2;	// 计算赛道中点
@@ -2256,5 +2187,23 @@ void Repair_For_Out_Island(int Side_Of_Island, int Size_Of_Island)
 		/* code */
 	}
 
+}
+
+/*
+*	图像算法参数初始化
+*
+*	说明：仅影响第一行特殊处理
+*/
+void Image_Para_Init(void)
+{	
+	Mid_Line[61] = 80;
+	Left_Line[61] = 1;
+	Right_Line[61] = 159;
+	Left_Add_Line[61] = 1;
+	Right_Add_Line[61] = 159;
+	Width_Real[61] = 158;
+	Width_Add[61] = 158;
+	Right_Add_Flag[61] = 0;
+	Left_Add_Flag[61] = 0;
 }
 

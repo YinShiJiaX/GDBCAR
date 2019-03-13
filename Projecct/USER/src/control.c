@@ -1,59 +1,68 @@
 #include "control.h"
 
-
-
-int16 Speed_L,Speed_R;
-/****************************速度参数*****************************/
-int16            SetSpeedMax=1400;                     //最大速度
-
-/****************************转向参数*****************************/
-float           Turn_Kp=50;                                   //  126
-float           Turn_Kd=2;                                  //  14.5
-int32 GyroX=0,GyroXo=0;//陀螺仪（X轴）采集值
-float Gyroroll,GyrorollOld[20];//转向角速度
-static float g_fDirectionControlOutOld, fvalueNew,fvalueOld,g_fDirectionControlOutNew,g_nDirectionControlPeriod;
-float  g_fDirectionControlOut=0;
+int32 Speed_Left = 0;
+int32 Speed_Right = 0;
+int32 Motor_Duty_Left = 1000;
+int32 Motor_Duty_Right = 1000;
 int32 Steer_Duty    = 0;/***当前需要给舵机的占空比***/
 
 
 
 
-void motor()
+void Motor_Control(void)
 {
-//  Speed_L=(int)(SetSpeedMax+g_fDirectionControlOut);
-//  Speed_R=(int)(SetSpeedMax-g_fDirectionControlOut);
-  
-  Speed_L=1500;
-  Speed_R=2200;
-  
-  if(Speed_L > 6000)       Speed_L =6000;            //输出限幅
-  else if(Speed_L < -6000)   Speed_L = -6000;
-  
-  if(Speed_R > 6000)  Speed_R = 6000;
-  else if(Speed_R < -6000) Speed_R = -6000;
-  
-  
-  if(Speed_L>=0)                                 //angle大于0，向前，小于0，向后
+  int32 Set_Speed = 0;
+  if(Current_Point >= 85 || Current_Point <= 75)
   {
-    ftm_pwm_duty(ftm3,ftm_ch4,0);
-    ftm_pwm_duty(ftm3,ftm_ch5,Speed_L + MOTOR_DEAD_VAL_L);    //加入死区电压(uint32_t)(Speed_L + MOTOR_DEAD_VAL_L)
+    Set_Speed = 150;
+    // Steer_pid[0] = 7;
+    // Steer_pid[2] = 15;
   }
   else
   {
-    ftm_pwm_duty(ftm3,ftm_ch5,0);
-    ftm_pwm_duty(ftm3,ftm_ch4,Speed_L + MOTOR_DEAD_VAL_L);    //加入死区电压
+    Set_Speed = 300;
+    // Steer_pid[0] = 7;
+    // Steer_pid[2] = 15;
   }
-  
-  if(Speed_R >=0)    //angle大于0，向前，小于0，向后     右电机死区电压50
+  Motor_Duty_Left += Increment_PID(Speed_Left, Set_Speed);
+  Motor_Duty_Right += Increment_PID(Speed_Right, Set_Speed);
+
+  /******左轮控制*******/
+  if(Motor_Duty_Left >= 0)
   {
-    ftm_pwm_duty(ftm3,ftm_ch7,0);
-    ftm_pwm_duty(ftm3,ftm_ch6,Speed_R + MOTOR_DEAD_VAL_R);    //加入死区电压(uint32_t)(Speed_R + MOTOR_DEAD_VAL_R)
+    Motor_Duty_Left = Range_Protect(Motor_Duty_Left, 100, 3000);
+    ftm_pwm_duty(MOTOR_FTM,LEFT_FORWARD_CH,Motor_Duty_Left);
+    ftm_pwm_duty(MOTOR_FTM,LEFT_BACK_CH,0);
   }
   else
   {
-    ftm_pwm_duty(ftm3,ftm_ch6,0);
-    ftm_pwm_duty(ftm3,ftm_ch7,Speed_R + MOTOR_DEAD_VAL_R);    //加入死区电压(uint32_t)(Speed_R + MOTOR_DEAD_VAL_R)
+    Motor_Duty_Left = (0-Motor_Duty_Left);
+    Motor_Duty_Left = Range_Protect(Motor_Duty_Left, 100, 3000);
+    ftm_pwm_duty(MOTOR_FTM,LEFT_BACK_CH,Motor_Duty_Left);
+    ftm_pwm_duty(MOTOR_FTM,LEFT_FORWARD_CH,0);
   }
+  /******左轮控制结束*******/
+
+  /******右轮控制**********/
+  if(Motor_Duty_Right >= 0)
+  {
+    Motor_Duty_Right = Range_Protect(Motor_Duty_Right, 100, 3000);
+    ftm_pwm_duty(MOTOR_FTM,RIGHT_FORWARD_CH,Motor_Duty_Right);
+    ftm_pwm_duty(MOTOR_FTM,RIGHT_BACK_CH,0);
+  }
+  else
+  {
+    Motor_Duty_Right = (0-Motor_Duty_Right);
+    Motor_Duty_Right = Range_Protect(Motor_Duty_Right, 100, 3000);
+    ftm_pwm_duty(MOTOR_FTM,RIGHT_BACK_CH,Motor_Duty_Right);
+    ftm_pwm_duty(MOTOR_FTM,RIGHT_FORWARD_CH,0);
+  }
+  /******右轮控制结束*******/
+  OLED_Print_Num1(0, 0, Motor_Duty_Right);
+  OLED_Print_Num1(0, 2, Motor_Duty_Left);
+  OLED_Print_Num1(0, 4, Current_Point);
+  
+
   
 }
 

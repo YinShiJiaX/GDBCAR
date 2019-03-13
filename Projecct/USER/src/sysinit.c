@@ -24,7 +24,7 @@ void everythinginit(void)
     enable_irq(PIT0_IRQn);
     EnableInterrupts;
 
-    //pit_init_ms(pit1, 50);
+    pit_init_ms(pit1, 50);
     set_irq_priority(PIT1_IRQn, 3);
     enable_irq(PIT1_IRQn);
     EnableInterrupts;
@@ -36,8 +36,8 @@ void everythinginit(void)
     //初始化ftm3模块，4通道为15kHZ，占空比为百分之0，默认精度为10000 引脚对应查看MK60DN10_port_cfg.h
     
     ftm_pwm_init(MOTOR_FTM,LEFT_BACK_CH,15000,0);//左电机反转
-    ftm_pwm_init(MOTOR_FTM,LEFT_FORWARD_CH,15000,2000);//左电机正转
-    ftm_pwm_init(MOTOR_FTM,RIGHT_FORWARD_CH,15000,2000);//右电机正转
+    ftm_pwm_init(MOTOR_FTM,LEFT_FORWARD_CH,15000,Motor_Duty_Left);//左电机正转
+    ftm_pwm_init(MOTOR_FTM,RIGHT_FORWARD_CH,15000,Motor_Duty_Right);//右电机正转
     ftm_pwm_init(MOTOR_FTM,RIGHT_BACK_CH,15000,0);//右电机反转
     
     /*1400-1550-1700*/

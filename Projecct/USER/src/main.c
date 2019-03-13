@@ -77,8 +77,7 @@ int main(void)
             // }
             // dis_bmp(60,128,dis_image[0],70);
 
-            
-            
+
             // uint32 use_time;
             // pit_time_start(pit1);
             //image_threshold = OtsuThreshold(image[0],COL,ROW);  //大津法计算阈值    //60*80图像计算时间为907us                     

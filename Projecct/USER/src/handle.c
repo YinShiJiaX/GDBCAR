@@ -356,6 +356,7 @@ void Image_Handle(uchar *data)
 		{
 			Rotary_Island_Left++; 
 		}
+	}
 	/*第三轮右环岛检测，找到右边的环岛拐点*/
 	if(Rotary_Island_Right == 2 && !Rotary_Island_Left)
 	{
@@ -1724,12 +1725,13 @@ void Line_Repair(uchar Start, uchar Stop, uchar *data, uchar *Line, uchar *Line_
 */
 void Mid_Line_Repair(uchar count, uchar *data)
 {
+	float Gradient_Sum = 0, k;
+
 	for (uchar i = 61; i >= count+2;)
 	{
 		i -= 2;
 		Mid_Line[i] = (Right_Add_Line[i] + Left_Add_Line[i]) / 2;	// 计算赛道中点
 		Width_Add[i] = Right_Add_Line[i] - Left_Add_Line[i];		// 计算赛道宽度
-			
 		/*************************** 上位机显示边界 ***************************/
 		data[i*160 + Left_Add_Line[i] + 6] = 0;	// 上位机显示补线后的左边界，不用时屏蔽
 		data[i*160 + Right_Add_Line[i] - 6] = 0;	// 上位机显示补线后的右边界，不用时屏蔽
@@ -1738,8 +1740,11 @@ void Mid_Line_Repair(uchar count, uchar *data)
 		data[i*160 + Right_Line[i] - 1] = 0;		// 上位机显示原始右边界，不用时屏蔽
 		/*************************** 上位机显示边界结束***************************/
 	}
+	
+
 	Mid_Line[61] = Mid_Line[59];
 }
+
 
 /****************** 新算法 ******************/
 
@@ -1802,9 +1807,9 @@ uchar Point_Weight(void)
 	return Point;
 }
 
-char Error_Transform(uchar Data, uchar Set)
+int8 Error_Transform(int8 Data, int8 Set)
 {
-	char Error;
+	int8 Error;
 	
 	Error = Set - Data;
 	if (Error < 0)
@@ -2297,7 +2302,7 @@ void Repair_For_Out_Island(int Side_Of_Island, int Size_Of_Island)
 		{
 			for(uchar i = 59; i >= 15;)
 			{
-				Left_Add_Line[i] = 30;
+				Left_Add_Line[i] = 40;
 				Right_Add_Line[i] = 159;
 				i-=2;
 			}
@@ -2328,3 +2333,44 @@ void Image_Para_Init(void)
 	Left_Add_Flag[61] = 0;
 }
 
+/*************************************************************
+ *Function:PointWeightAdjust
+ *Description:Adjust the weight array
+ * - PointWeight: Original PointWeight array.
+ * - AdjustCount: The count you want to adjust.
+ * - Direction  : Adjust to Right(0) or Left(1)
+ ************************************************************/
+void Point_Weight_Adjust(uchar *PointWeight, uchar Direction, uchar AdjustCount)
+{
+  char i;
+	/* 权重数组向左调整 */
+	if(Direction == 1)
+	{
+		for(i = AdjustCount; i < 60; i++)
+		{
+			PointWeight[i] = PointWeight[i - AdjustCount];
+			
+		}
+		for(i = 0; i < AdjustCount; i++)
+		{
+			PointWeight[i] = 1;
+		}
+
+	}
+	/* 权重数组向右调整 */
+	if(Direction == 0)
+	{
+		for(i = 0; i < 60 - AdjustCount; i++)
+		{
+			PointWeight[i] = PointWeight[i + AdjustCount];
+			
+		}
+		for(i = 60 - AdjustCount; i < 60; i++)
+		{
+			PointWeight[i] = 1;
+		}
+
+	}
+
+
+}

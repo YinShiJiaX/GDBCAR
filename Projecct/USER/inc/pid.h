@@ -18,10 +18,15 @@ typedef struct PID
 	int LastSpeed;	//Speed[-1]
 } PID;
 
+extern float Steer_pid[3];/*P, I, D*/
+extern float Motor_pid[3];/*P, I, D*/
+
 /******External Variable declaration******/
 
 
 /********Function declarations***********/
 int16 Position_PID(int32 Need_Point, int32 Actual_Point);
+
+int16 Increment_PID(int32 Actual_Speed, int32 Set_Speed);
 
 #endif/*_PID_H_*/

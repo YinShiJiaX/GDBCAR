@@ -4,15 +4,15 @@
 #define STEER_MID 1550
 
 /************Variable definition***************/
-float Steer_pid[3] = {7.5, 0, 20};/*P, I, D*/
-float Motor_pid[3] = {0, 0, 0};/*P, I, D*/
+float Steer_pid[3] = {7.3, 0, 10};/*P, I, D*/
+float Motor_pid[3] = {0, 1, 0};/*P, I, D*/
 
 PID STEER_PID;
 PID MOTOR_PID;
 
 
 
-/***Position PID caculation(Just for steer engine)********************/
+/***Incremental PID caculation(Just for motor engine)********************/
 int16 Position_PID(int32 Need_Point, int32 Actual_Point)
 {
 	/* current deviation */
@@ -30,4 +30,22 @@ int16 Position_PID(int32 Need_Point, int32 Actual_Point)
 	
 	return  STEER_MID - Actual; 
 
+}
+
+/***Position PID caculation(Just for steer engine)********************/
+int16 Increment_PID(int32 Actual_Speed, int32 Set_Speed)
+{
+	int32 iError;
+	int32 Increase;	
+
+	iError = Set_Speed - Actual_Speed;
+
+	Increase = Motor_pid[0] * (iError - MOTOR_PID.LastError)
+			 + Motor_pid[1] * iError
+			 + Motor_pid[2] * (iError - 2 * MOTOR_PID.LastError + MOTOR_PID.PrevError);
+	
+	MOTOR_PID.PrevError = MOTOR_PID.LastError;
+	MOTOR_PID.LastError = iError;
+	MOTOR_PID.LastSpeed = Actual_Speed;
+	return Increase;
 }

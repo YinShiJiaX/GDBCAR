@@ -20,6 +20,7 @@
 #define QUAD1            ftm1
 #define QUAD2            ftm2
 
+
 void everythinginit(void);
 
 

@@ -74,7 +74,7 @@ void Image_Handle(uchar *data)
 	Right_Add_Start = 0;
 	Left_Add_Stop = 0;
 	Right_Add_Stop = 0;
-	
+	Point_Weight_Adjust(Weight, 0, 20);
 
 
 	/***************************** 第一行特殊处理 *****************************/	

@@ -2,6 +2,7 @@
  * This module is used to initial all the software module and hardware module.
  * *************************************************************************/
 #include "headfile.h"
+
 void everythinginit(void)
 {
     /**上电后必须运行一次这个函数，获取各个频率信息，便于后面各个模块的参数设置**/

@@ -65,13 +65,45 @@ void PIT0_IRQHandler(void)
 
 void PIT1_IRQHandler(void)
 {
-    int16 pulse1, pulse2, distance, speed1, speed2;
+    static int16 time = 0;
+    int16 pulse1, pulse2, distance, Speed1 = 0, Speed2 = 0;
     pulse1   = ftm_quad_get(ftm1)/4;          //获取FTM 正交解码 的脉冲数(负数表示反方向)
     pulse2   = ftm_quad_get(ftm2)/4;
-    Speed_Right   = 0.18 * pulse1;
     Speed_Left   = 0.18 * pulse2;
+    Speed_Right   = 0.18 * pulse1;
+    Speed1 = (60*Speed_Left/800);
+    Speed2 = (60*Speed_Right/800);//用于OLED显示绘制动态响应曲线
+    /*
+    if(time%2 == 0)
+    {
+        Speed1 = Range_Protect(Speed1, 0, 60);
+        OLED_PutPixel(time/2, (uint8)Speed1);
+    }
+    time++;
+    if(time == 256)
+    {
+        OLED_Fill(0x00);
+        time = 0;
+    }
+    */
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     //distance = adc_once(GP2Y0A0, ADC_8bit);
-    Motor_Control();
     /*
     if(distance >= 80)
     {
@@ -94,6 +126,8 @@ void PIT1_IRQHandler(void)
     // OLED_Print_Num1(0, 0, Current_Point);   /***OLED输出当前中值***/
     //OLED_Print_Num1(0, 2, (int16)((Left_Add_Line[37] + Right_Add_Line[37])/2) );
     //OLED_Print_Num1(0, 4, (int16)((Left_Line[37] + Right_Line[37])/2) );
+
+    Motor_Control();
     ftm_quad_clean(ftm1);
     ftm_quad_clean(ftm2);
     PIT_FlAG_CLR(pit1);       //清中断标志位

@@ -71,13 +71,14 @@ void PIT1_IRQHandler(void)
     pulse2   = ftm_quad_get(ftm2)/4;
     Speed_Left   = 0.18 * pulse2;
     Speed_Right   = 0.18 * pulse1;
-    Speed1 = (60*Speed_Left/800);
-    Speed2 = (60*Speed_Right/800);//用于OLED显示绘制动态响应曲线
+    Speed1 = (64*Speed_Left/700);
+    Speed2 = (64*Speed_Right/700);//用于OLED显示绘制动态响应曲线
     /*
     if(time%2 == 0)
     {
-        Speed1 = Range_Protect(Speed1, 0, 60);
-        OLED_PutPixel(time/2, (uint8)Speed1);
+        Speed1 = Range_Protect(Speed1, 1, 60);
+        //OLED_Print_Num1(0, 0, Speed1);
+        OLED_PutPixel(time/2, (uint8)Speed2);
     }
     time++;
     if(time == 256)

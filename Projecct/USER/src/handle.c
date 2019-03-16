@@ -74,7 +74,7 @@ void Image_Handle(uchar *data)
 	Right_Add_Start = 0;
 	Left_Add_Stop = 0;
 	Right_Add_Stop = 0;
-	Point_Weight_Adjust(Weight, 0, 35);
+	//Point_Weight_Adjust(Weight, 0, 20);
 
 
 	/***************************** 第一行特殊处理 *****************************/	
@@ -290,7 +290,10 @@ void Image_Handle(uchar *data)
 			Cross_Line_Count++;
 			if(Cross_Line_Count >= 14)
 			{
-				Cross_Flag = 1;
+				if(!Rotary_Island_Right)
+				{
+					Cross_Flag = 1;
+				}
 			}
 		}
 
@@ -395,7 +398,7 @@ void Image_Handle(uchar *data)
 	{
 		if(Left_Add_Flag[59])
 		{
-			Rotary_Island_Right++;
+			Rotary_Island_Right++; 
 		}
 
 	}
@@ -427,7 +430,7 @@ void Image_Handle(uchar *data)
 		/*第七轮右环岛检测，出环岛，发现图像中间左右出现缺口*/
 	if(Rotary_Island_Right == 6 && !Rotary_Island_Left)
 	{
-		if(Left_Add_Flag[25])
+		if(Left_Add_Flag[21])
 		{
 			Rotary_Island_Right++;
 		}
@@ -525,11 +528,11 @@ void Image_Handle(uchar *data)
 	/********************十字处理结束*********************************************/
 
 	/********************右环岛处理*********************************************/
-	if(Rotary_Island_Right == 1 || Rotary_Island_Right == 2)
+	if(Rotary_Island_Right == 1 || Rotary_Island_Right == 2 || Rotary_Island_Right == 3)
 	{
-		for(int i = 59;i >= 15;)
+		for(uchar i = 59;i >= 15;)
 		{
-			Right_Add_Line[i] = Left_Add_Line[i] + 134 + 2*(i - 59);
+			Right_Add_Line[i] = Left_Add_Line[i] + 138 + 2*(i - 59);
 			i -= 2;
 		}
 	}
@@ -538,7 +541,16 @@ void Image_Handle(uchar *data)
 		if(Travel_Repair_Point_For_Island(data, 0, 1))
 		{
 			Repair_For_In_Island(0, 1);
-		}		
+			Rotary_Island_Count2 = 1;
+		}
+		else
+		{
+			if(Rotary_Island_Count2 == 1)
+			{
+				Repair_For_In_Island(0, 1);
+			}
+		}
+				
 	}
 	if(Rotary_Island_Right == 7 || Rotary_Island_Right == 8)
 	{
@@ -549,7 +561,7 @@ void Image_Handle(uchar *data)
 	{
 		for(int i = 59;i >= 15;)
 		{
-			Right_Add_Line[i] = Left_Add_Line[i] + 134 + 2*(i - 59);
+			Right_Add_Line[i] = Left_Add_Line[i] + 138 + 2*(i - 59);
 			i -= 2;
 		}
 
@@ -568,7 +580,7 @@ void Image_Handle(uchar *data)
 	{
 		for(uchar i = 59;i >= 15;)
 		{
-			Left_Add_Line[i] = Right_Add_Line[i] - 134 + 2*(59 - i);
+			Left_Add_Line[i] = Right_Add_Line[i] - 124 + 2*(59 - i);
 			i -= 2;
 		}
 
@@ -578,7 +590,7 @@ void Image_Handle(uchar *data)
 	{
 		for(uchar i = 59;i >= 15;)
 		{
-			Left_Add_Line[i] = Right_Add_Line[i] - 134 + 2*(59 - i);
+			Left_Add_Line[i] = Right_Add_Line[i] - 124 + 2*(59 - i);
 			i -= 2;
 		}
 
@@ -1759,11 +1771,6 @@ uchar Point_Weight(void)
 	static char Last_Point = 80;
 	int32 Sum = 0, Weight_Count = 0;
 	
-	if (Line_Count <= 20)
-	{
-		Line_Count = 20;
-	}
-	
 	if (Out_Side || Line_Count >= 53)	//出界或者摄像头图像异常
 	{
 		if (Last_Point == 80)
@@ -1788,22 +1795,20 @@ uchar Point_Weight(void)
 			Weight_Count += Weight[59-i];
 		}
 		Point = Range_Protect(Sum / Weight_Count, 2, 158);
-		//Point = Range_Protect(Point, 2, 158);
 		Last_Point = Point;
 		
 		/***** 使用最远行数据和目标点作为前瞻 *****/
 		if (Line_Count >= 25)
 		{
-			Point_Mid = Mid_Line[Line_Count+1];
+			Point_Mid = Mid_Line[Line_Count];
 		}
 		else
 		{
-			Point_Mid = Mid_Line[Line_Count+1];
+			Point_Mid = Mid_Line[Line_Count];
 		}
 	}
-	Foresight = 0.8 * Error_Transform(Point_Mid, 80);	//使用最远行偏差和加权偏差确定前瞻
-			  	+ 0.2 * Error_Transform(Point, 	 80);
-	
+	Foresight = 0.7 * Error_Transform(Point_Mid, 80);	//使用最远行偏差和加权偏差确定前瞻
+			  		+ 0.3 * Error_Transform(Point, 	 80);
 	return Point;
 }
 
@@ -2199,9 +2204,9 @@ int Travel_Repair_Point_For_Island(uchar *data,int Side_Of_Island, int Size_Of_I
 	{
 		if(Size_Of_Island == 1)
 		{
-			for(uchar  i = 55; i >= 7;)
+			for(uchar  i = 55; i >= 11;)
 			{
-				i-=3;
+				i-=2;
 				for(uchar j = 1;j <= 120;j++)
 				{
 					if((!data[i*160 + j] && !data[i*160 + j + 1] && data[i*160 + j + 2] && data[i*160 + j + 3]) 

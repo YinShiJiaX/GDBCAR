@@ -4,7 +4,7 @@
 #define STEER_MID 1550
 
 /************Variable definition***************/
-float Steer_pid[3] = {7.5, 0, 3};/*P, I, D*/
+float Steer_pid[3] = {7, 0, 1};/*P, I, D*/
 float Motor_pid[3] = {0, 2, 0};/*P, I, D*/
 
 PID STEER_PID;

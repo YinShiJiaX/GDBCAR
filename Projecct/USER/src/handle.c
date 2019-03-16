@@ -74,7 +74,7 @@ void Image_Handle(uchar *data)
 	Right_Add_Start = 0;
 	Left_Add_Stop = 0;
 	Right_Add_Stop = 0;
-	Point_Weight_Adjust(Weight, 0, 20);
+	Point_Weight_Adjust(Weight, 0, 35);
 
 
 	/***************************** 第一行特殊处理 *****************************/	
@@ -529,7 +529,7 @@ void Image_Handle(uchar *data)
 	{
 		for(int i = 59;i >= 15;)
 		{
-			Right_Add_Line[i] = Left_Add_Line[i] + 110 + i - 59;
+			Right_Add_Line[i] = Left_Add_Line[i] + 134 + 2*(i - 59);
 			i -= 2;
 		}
 	}
@@ -549,7 +549,7 @@ void Image_Handle(uchar *data)
 	{
 		for(int i = 59;i >= 15;)
 		{
-			Right_Add_Line[i] = Left_Add_Line[i] + 110 + i - 59;
+			Right_Add_Line[i] = Left_Add_Line[i] + 134 + 2*(i - 59);
 			i -= 2;
 		}
 
@@ -568,7 +568,7 @@ void Image_Handle(uchar *data)
 	{
 		for(uchar i = 59;i >= 15;)
 		{
-			Left_Add_Line[i] = Right_Add_Line[i] - 110 + 59 - i;
+			Left_Add_Line[i] = Right_Add_Line[i] - 134 + 2*(59 - i);
 			i -= 2;
 		}
 
@@ -578,7 +578,7 @@ void Image_Handle(uchar *data)
 	{
 		for(uchar i = 59;i >= 15;)
 		{
-			Left_Add_Line[i] = Right_Add_Line[i] - 110 + 59 - i;
+			Left_Add_Line[i] = Right_Add_Line[i] - 134 + 2*(59 - i);
 			i -= 2;
 		}
 
@@ -1787,22 +1787,22 @@ uchar Point_Weight(void)
 			Sum += Mid_Line[i] * Weight[59-i];
 			Weight_Count += Weight[59-i];
 		}
-		Point = Range_Protect(Sum / Weight_Count, 1, 159);
-		Point = Range_Protect(Point, 2, 158);
+		Point = Range_Protect(Sum / Weight_Count, 2, 158);
+		//Point = Range_Protect(Point, 2, 158);
 		Last_Point = Point;
 		
 		/***** 使用最远行数据和目标点作为前瞻 *****/
 		if (Line_Count >= 25)
 		{
-			Point_Mid = Mid_Line[60-30];
+			Point_Mid = Mid_Line[Line_Count+1];
 		}
 		else
 		{
-			Point_Mid = Mid_Line[60-Line_Count];
+			Point_Mid = Mid_Line[Line_Count+1];
 		}
 	}
-	Foresight = 0.8 * Error_Transform(Point_Mid, 80)	//使用最远行偏差和加权偏差确定前瞻
-			  + 0.2 * Error_Transform(Point, 	 80);
+	Foresight = 0.8 * Error_Transform(Point_Mid, 80);	//使用最远行偏差和加权偏差确定前瞻
+			  	+ 0.2 * Error_Transform(Point, 	 80);
 	
 	return Point;
 }

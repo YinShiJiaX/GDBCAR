@@ -63,7 +63,7 @@ int main(void)
             
             Image_Handle(image[0]);                            /****处理图像，取中线***/
 
-            Current_Point = Point_Average();                   /*******加权平均*******/
+            Current_Point = Point_Weight();                   /*******加权平均*******/
 
             Steer_Duty = Position_PID(80, Current_Point);      /*****位置式pid解算****/
 

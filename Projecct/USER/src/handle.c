@@ -74,7 +74,7 @@ void Image_Handle(uchar *data)
 	Right_Add_Start = 0;
 	Left_Add_Stop = 0;
 	Right_Add_Stop = 0;
-	//Point_Weight_Adjust(Weight, 0, 20);
+	Point_Weight_Adjust(Weight, 0, 20);
 
 
 	/***************************** 第一行特殊处理 *****************************/	
@@ -291,9 +291,7 @@ void Image_Handle(uchar *data)
 			if(Cross_Line_Count >= 14)
 			{
 				if(!Rotary_Island_Right)
-				{
-					Cross_Flag = 1;
-				}
+				Cross_Flag = 1;
 			}
 		}
 
@@ -532,7 +530,7 @@ void Image_Handle(uchar *data)
 	{
 		for(uchar i = 59;i >= 15;)
 		{
-			Right_Add_Line[i] = Left_Add_Line[i] + 138 + 2*(i - 59);
+			Right_Add_Line[i] = Left_Add_Line[i] + 134 + 2*(i - 59);
 			i -= 2;
 		}
 	}
@@ -561,7 +559,7 @@ void Image_Handle(uchar *data)
 	{
 		for(int i = 59;i >= 15;)
 		{
-			Right_Add_Line[i] = Left_Add_Line[i] + 138 + 2*(i - 59);
+			Right_Add_Line[i] = Left_Add_Line[i] + 134 + 2*(i - 59);
 			i -= 2;
 		}
 
@@ -1807,8 +1805,8 @@ uchar Point_Weight(void)
 			Point_Mid = Mid_Line[Line_Count];
 		}
 	}
-	Foresight = 0.7 * Error_Transform(Point_Mid, 80);	//使用最远行偏差和加权偏差确定前瞻
-			  		+ 0.3 * Error_Transform(Point, 	 80);
+	Foresight = 0.8 * Error_Transform(Point_Mid, 80);	//使用最远行偏差和加权偏差确定前瞻
+			  		+ 0.2 * Error_Transform(Point, 	 80);
 	return Point;
 }
 
@@ -2200,6 +2198,8 @@ int Travel_Turn_Point_For_Island(uchar *data,int Side_Of_Island, int Size_Of_Isl
 int Travel_Repair_Point_For_Island(uchar *data,int Side_Of_Island, int Size_Of_Island)
 {
 	uchar count = 0;
+	uchar count1 = 0;
+	uchar Repair_Point_Average = 0;
 	if(Side_Of_Island == 0)
 	{
 		if(Size_Of_Island == 1)
@@ -2216,13 +2216,23 @@ int Travel_Repair_Point_For_Island(uchar *data,int Side_Of_Island, int Size_Of_I
 					}
 					if(count >= 3)
 					{
-						Rotary_Island_Repair_Point[0] = i;
-						Rotary_Island_Repair_Point[1] = j;
-						return 1;
+						count1++;
+						if(count1 == 1)
+						{
+							Repair_Point_Average = j;
+						}
+
 					}
 				}
 				count = 0;
+				if(count1 >= 3)
+				{
+					Rotary_Island_Repair_Point[0] = i;
+					Rotary_Island_Repair_Point[1] = Repair_Point_Average; 
+					return 1; 
+				}
 			}
+			count1 = 0;
 		}
 		else
 		{

@@ -67,15 +67,15 @@ int main(void)
 
             Steer_Duty = Position_PID(80, Current_Point);      /*****位置式pid解算****/
 
-            Steer_Duty = Range_Protect(Steer_Duty, 1400, 1700);/*******限幅保护*******/
+            Steer_Duty = Range_Protect(Steer_Duty, 1400, 1735);/*******限幅保护*******/
             
             ftm_pwm_duty(STEER_FTM, STEER_CH, Steer_Duty);     /****改变舵机占空比****/
 
-            for(uchar num=0; num<64; num++)
-            {
-                memcpy(dis_image[num],&image[num][16],128);
-            }
-            dis_bmp(60,128,dis_image[0],70);
+            // for(uchar num=0; num<64; num++)
+            // {
+            //     memcpy(dis_image[num],&image[num][16],128);
+            // }
+            // dis_bmp(60,128,dis_image[0],70);
 
 
             // uint32 use_time;

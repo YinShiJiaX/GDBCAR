@@ -1,7 +1,7 @@
 #include "handle.h"
 
 uint8 colour[2] = {255, 0},black=1,white=0; //0 和 1 分别对应的颜色
-//注：山外的摄像头 0 表示 白色，1表示 黑色
+
 uchar Weight[60] = { 5,  6,  8,  9, 11, 12, 14, 15, 17, 18,	// 50
 					20, 21, 22, 23, 24, 25, 26, 27, 28, 29,	// 40
 				    27, 27, 26, 25, 24, 23, 22, 21, 20, 19,	// 30
@@ -74,7 +74,6 @@ void Image_Handle(uchar *data)
 	Right_Add_Start = 0;
 	Left_Add_Stop = 0;
 	Right_Add_Stop = 0;
-	Point_Weight_Adjust(Weight, 0, 20);
 
 
 	/***************************** 第一行特殊处理 *****************************/	
@@ -519,7 +518,7 @@ void Image_Handle(uchar *data)
 		for(uchar i = 59;i >= 15;)
 		{
 			i -= 2;
-			Left_Add_Line[i] = 7;
+			Left_Add_Line[i] = 1;
 			Right_Add_Line[i] = 159;
 		}	
 	}

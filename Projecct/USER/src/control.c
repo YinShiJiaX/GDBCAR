@@ -2,8 +2,8 @@
 
 int32 Speed_Left = 0;
 int32 Speed_Right = 0;
-int32 Motor_Duty_Left = 1000;
-int32 Motor_Duty_Right = 1000;
+int32 Motor_Duty_Left = 3000;
+int32 Motor_Duty_Right = 3000;
 int32 Steer_Duty    = 0;/***当前需要给舵机的占空比***/
 
 
@@ -14,11 +14,11 @@ void Motor_Control(void)
   int32 Set_Speed = 0;
   if(Foresight >= 6)
   {
-    Set_Speed = 150;
+    Set_Speed = 180;
   }
   else
   {
-    Set_Speed = 200;
+    Set_Speed = 230;
   }
   Motor_Duty_Left += Increment_PID(Speed_Left, Set_Speed);
   Motor_Duty_Right += Increment_PID(Speed_Right, Set_Speed);
@@ -26,14 +26,14 @@ void Motor_Control(void)
   /******左轮控制*******/
   if(Motor_Duty_Left >= 0)
   {
-    Motor_Duty_Left = Range_Protect(Motor_Duty_Left, 100, 3000);
+    Motor_Duty_Left = Range_Protect(Motor_Duty_Left, 100, 3500);
     ftm_pwm_duty(MOTOR_FTM,LEFT_FORWARD_CH,Motor_Duty_Left);
     ftm_pwm_duty(MOTOR_FTM,LEFT_BACK_CH,0);
   }
   else
   {
     Motor_Duty_Left = (0-Motor_Duty_Left);
-    Motor_Duty_Left = Range_Protect(Motor_Duty_Left, 100, 3000);
+    Motor_Duty_Left = Range_Protect(Motor_Duty_Left, 100, 3500);
     ftm_pwm_duty(MOTOR_FTM,LEFT_BACK_CH,Motor_Duty_Left);
     ftm_pwm_duty(MOTOR_FTM,LEFT_FORWARD_CH,0);
   }
@@ -42,14 +42,14 @@ void Motor_Control(void)
   /******右轮控制**********/
   if(Motor_Duty_Right >= 0)
   {
-    Motor_Duty_Right = Range_Protect(Motor_Duty_Right, 100, 4000);
+    Motor_Duty_Right = Range_Protect(Motor_Duty_Right, 100, 3500);
     ftm_pwm_duty(MOTOR_FTM,RIGHT_FORWARD_CH,Motor_Duty_Right);
     ftm_pwm_duty(MOTOR_FTM,RIGHT_BACK_CH,0);
   }
   else
   {
     Motor_Duty_Right = (0-Motor_Duty_Right);
-    Motor_Duty_Right = Range_Protect(Motor_Duty_Right, 100, 4000);
+    Motor_Duty_Right = Range_Protect(Motor_Duty_Right, 100, 3500);
     ftm_pwm_duty(MOTOR_FTM,RIGHT_BACK_CH,Motor_Duty_Right);
     ftm_pwm_duty(MOTOR_FTM,RIGHT_FORWARD_CH,0);
   }

@@ -94,34 +94,34 @@ void test_motor(void)
     ftm_pwm_init(ftm3,ftm_ch5,15000,0);//左电机正转
     ftm_pwm_init(ftm3,ftm_ch6,15000,0);//右电机正转
     ftm_pwm_init(ftm3,ftm_ch7,15000,0);
-    ftm_pwm_init(STEER_FTM, STEER_CH, 100, 0);
+    ftm_pwm_init(STEER_FTM, STEER_CH, 100, 1735);
     while(1)
     {
         ftm_pwm_duty(ftm3,ftm_ch4,1000);
         ftm_pwm_duty(ftm3,ftm_ch7,1000);
         //systick_delay_ms(400);
         
-        for(int i = 0; i <= 150; i++)
-        {
-            systick_delay_ms(5);
-            ftm_pwm_duty(STEER_FTM, STEER_CH, 1550 - i);
-        }
-        for(int i = 0; i <= 150; i++)
-        {
-            systick_delay_ms(5);
-            ftm_pwm_duty(STEER_FTM, STEER_CH, 1400 + i);
-        }
-        for(int i = 0; i <= 150; i++)
-        {
-            systick_delay_ms(5);
-            ftm_pwm_duty(STEER_FTM, STEER_CH, 1550 + i);
-        }
-        for(int i = 0; i <= 300; i++)
-        {
-            systick_delay_ms(6);
-            ftm_pwm_duty(STEER_FTM, STEER_CH, 1700 - i);
-        }
-        while(1);
+        // for(int i = 0; i <= 150; i++)
+        // {
+        //     systick_delay_ms(5);
+        //     ftm_pwm_duty(STEER_FTM, STEER_CH, 1550 - i);
+        // }
+        // for(int i = 0; i <= 150; i++)
+        // {
+        //     systick_delay_ms(5);
+        //     ftm_pwm_duty(STEER_FTM, STEER_CH, 1400 + i);
+        // }
+        // for(int i = 0; i <= 150; i++)
+        // {
+        //     systick_delay_ms(5);
+        //     ftm_pwm_duty(STEER_FTM, STEER_CH, 1550 + i);
+        // }
+        // for(int i = 0; i <= 300; i++)
+        // {
+        //     systick_delay_ms(6);
+        //     ftm_pwm_duty(STEER_FTM, STEER_CH, 1700 - i);
+        // }
+        //while(1);
     }
 }
 void test_MPU6050(void)

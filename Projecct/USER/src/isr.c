@@ -22,16 +22,6 @@
 
 #include "isr.h"
 
-void PORTA_IRQHandler(void)
-{
-    //清除中断标志第一种方法直接操作寄存器，每一位对应一个引脚
-	PORTA->ISFR = 0xffffffff;
-	//使用我们编写的宏定义清除发生中断的引脚
-	//PORTA_FLAG_CLR(A1);
-  VSYNC();
-
-}
-
 
 void PORTC_IRQHandler(void)
 {
@@ -60,6 +50,19 @@ void PIT0_IRQHandler(void)
 {
     PIT_FlAG_CLR(pit0);
     gpio_turn(A19);
+    //用来进行舵机按键开断
+    if(gpio_get(A29) == 0)
+    {
+        systick_delay_ms(20);
+        {
+            if(gpio_get(A29) == 0)
+            {
+                gpio_init(A7, GPI, 1);
+            }
+        }
+
+    }
+
 
 }
 

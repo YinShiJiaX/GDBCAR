@@ -20,9 +20,9 @@ int16 Position_PID(int32 Need_Point, int32 Actual_Point)
 	/* real output */
 	register int32 Actual;
 
-	/* dynamic P D */
-	//Steer_pid[0] = 5.3 + (7)*Foresight*Foresight/500;
-
+	/* dynamic P*/
+	Steer_pid[0] = 5 + 6*Foresight*Foresight/800;
+	//OLED_Print_Num1(0, 0, Foresight);
 	
 	/* caculate current deviation */
 	iError = Need_Point - Actual_Point;	

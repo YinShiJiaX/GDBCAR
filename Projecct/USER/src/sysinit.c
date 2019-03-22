@@ -9,6 +9,7 @@ void everythinginit(void)
     get_clk();
     /**蜂鸣器,LED,串口,摄像头,OLED***/
     gpio_init(LED,GPO,0);       //开LED灯
+    gpio_init(A29, GPI, 1);      //初始化按键
 
     // gpio_init(BUZZER,GPO,1);	    //开蜂鸣器
     // systick_delay_ms(300);
@@ -28,6 +29,7 @@ void everythinginit(void)
     pit_init_ms(pit1, 50);
     set_irq_priority(PIT1_IRQn, 3);
     enable_irq(PIT1_IRQn);
+
     EnableInterrupts;
     /******************************正交解码初始化***************************/
     ftm_quad_init(QUAD1);
